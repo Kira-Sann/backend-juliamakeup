@@ -3,10 +3,8 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 
+const app = express(); // ✅ Declarando o app
 const PORT = process.env.PORT || 3001; // Permite que o serviço escolha a porta
-app.listen(PORT, () => {
-  console.log(`API rodando na porta ${PORT}`);
-});
 
 // =======================
 // Middlewares
@@ -90,6 +88,8 @@ app.get("/", (req, res) => {
   res.send("🚀 API Julia Makeup rodando!");
 });
 
+// =======================
+// Start do servidor
 // =======================
 app.listen(PORT, () => {
   console.log(`✅ API rodando em http://localhost:${PORT}`);
