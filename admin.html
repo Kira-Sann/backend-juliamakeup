@@ -30,6 +30,14 @@
                 <button class="logout" onclick="logoutAdmin()">Sair</button>
             </header>
 
+            <form id="password-form" class="password-form">
+                <h2>Alterar senha</h2>
+                <input type="password" id="current-password" placeholder="Senha atual" required>
+                <input type="password" id="new-password" placeholder="Nova senha" required minlength="8">
+                <button type="submit">Atualizar senha</button>
+                <p id="password-message" class="status-message"></p>
+            </form>
+
             <!-- FORM -->
             <form id="product-form">
 

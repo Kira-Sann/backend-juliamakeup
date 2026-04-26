@@ -5,7 +5,7 @@ let products = [];
 let editingId = null;
 let currentImage = "";
 const API_URL = "https://backend-juliamakeup.onrender.com";
-const ADMIN_TOKEN = "julia3535";
+const ADMIN_STORAGE_KEY = "adminToken";
 
 const isNew = document.getElementById("isNew");
 const isSale = document.getElementById("isSale");
@@ -33,30 +33,57 @@ const descInput = document.getElementById("description");
 const stockInput = document.getElementById("stock");
 const imagePreview = document.getElementById("image-preview");
 const adminSearch = document.getElementById("admin-search");
+const passwordForm = document.getElementById("password-form");
+const currentPasswordInput = document.getElementById("current-password");
+const newPasswordInput = document.getElementById("new-password");
+const passwordMessage = document.getElementById("password-message");
 
 /*************************
  * AUTENTICAÇÃO
  *************************/
 
 
-function isAdminAuthenticated() {
-  return localStorage.getItem("adminAuth") === "true";
+function getAdminToken() {
+  return localStorage.getItem(ADMIN_STORAGE_KEY) || "";
 }
 
-function loginAdmin() {
+function isAdminAuthenticated() {
+  return Boolean(getAdminToken());
+}
+
+async function loginAdmin() {
   const input = document.getElementById("admin-password");
   const error = document.getElementById("login-error");
 
-  if (input.value === ADMIN_TOKEN) {
-    localStorage.setItem("adminAuth", "true");
+  error.textContent = "";
+
+  try {
+    const res = await fetch(`${API_URL}/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ password: input.value })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.token) {
+      error.textContent = data.error || "Nao foi possivel entrar";
+      return;
+    }
+
+    localStorage.setItem(ADMIN_STORAGE_KEY, data.token);
+    input.value = "";
     showAdmin();
-  } else {
-    error.textContent = "Senha incorreta";
+  } catch (err) {
+    console.error(err);
+    error.textContent = "Erro ao conectar com o servidor";
   }
 }
 
 function logoutAdmin() {
-  localStorage.removeItem("adminAuth");
+  localStorage.removeItem(ADMIN_STORAGE_KEY);
   location.reload();
 }
 
@@ -66,16 +93,50 @@ function showAdmin() {
   renderList();
 }
 
-function checkAdminAuth() {
-  if (isAdminAuthenticated()) {
-    showAdmin();
-  }
+function getAdminHeaders() {
+  return {
+    Authorization: `Bearer ${getAdminToken()}`
+  };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  checkAdminAuth();
+async function checkAdminAuth() {
+  const token = getAdminToken();
+
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_URL}/admin/session`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (res.ok) {
+      showAdmin();
+      return;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
+  localStorage.removeItem(ADMIN_STORAGE_KEY);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await checkAdminAuth();
   loadProducts();
 });
+
+function setPasswordMessage(message, type = "") {
+  if (!passwordMessage) return;
+
+  passwordMessage.textContent = message;
+  passwordMessage.className = "status-message";
+
+  if (type) {
+    passwordMessage.classList.add(type);
+  }
+}
 
 /*************************
  * RENDERIZA LISTA
@@ -114,13 +175,15 @@ function renderList(listToRender = products) {
 async function removeProduct(id) {
   const res = await fetch(`${API_URL}/products/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: ADMIN_TOKEN
-    }
+    headers: getAdminHeaders()
   });
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      logoutAdmin();
+      return;
+    }
     alert(data.error || "Nao foi possivel remover o produto.");
     return;
   }
@@ -182,14 +245,16 @@ form.addEventListener("submit", async (e) => {
   if (editingId) {
     const res = await fetch(`${API_URL}/products/${editingId}`, {
       method: "PUT",
-      headers: {
-        Authorization: ADMIN_TOKEN
-      },
+      headers: getAdminHeaders(),
       body: formData
     });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        logoutAdmin();
+        return;
+      }
       alert(data.error || "Nao foi possivel atualizar o produto.");
       return;
     }
@@ -198,14 +263,16 @@ form.addEventListener("submit", async (e) => {
   } else {
     const res = await fetch(`${API_URL}/products`, {
       method: "POST",
-      headers: {
-        Authorization: ADMIN_TOKEN
-      },
+      headers: getAdminHeaders(),
       body: formData
     });
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) {
+        logoutAdmin();
+        return;
+      }
       alert(data.error || "Nao foi possivel criar o produto.");
       return;
     }
@@ -218,6 +285,51 @@ form.addEventListener("submit", async (e) => {
   currentImage = "";
   form.querySelector("button").textContent = "Salvar Produto";
 });
+
+if (passwordForm) {
+  passwordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!isAdminAuthenticated()) {
+      alert("Acesso negado");
+      return;
+    }
+
+    setPasswordMessage("");
+
+    const res = await fetch(`${API_URL}/admin/change-password`, {
+      method: "POST",
+      headers: {
+        ...getAdminHeaders(),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        currentPassword: currentPasswordInput.value,
+        newPassword: newPasswordInput.value
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        if (data.error === "Senha atual incorreta") {
+          setPasswordMessage(data.error, "error");
+          return;
+        }
+
+        logoutAdmin();
+        return;
+      }
+
+      setPasswordMessage(data.error || "Nao foi possivel atualizar a senha", "error");
+      return;
+    }
+
+    passwordForm.reset();
+    setPasswordMessage("Senha atualizada com sucesso", "success");
+  });
+}
 
 
 /*************************

@@ -84,6 +84,56 @@ body {
   cursor: pointer;
 }
 
+.password-form {
+  background: var(--card);
+  padding: 1.5rem;
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
+  box-shadow: 0 15px 35px rgba(0,0,0,.06);
+  margin-bottom: 2rem;
+}
+
+.password-form h2,
+.status-message {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.password-form h2 {
+  font-size: 1rem;
+}
+
+.password-form input {
+  padding: .9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.password-form button {
+  background: var(--primary);
+  color: #ffffff;
+  padding: .95rem 1.2rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.status-message {
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+.status-message.error {
+  color: #dc143c;
+}
+
+.status-message.success {
+  color: #15803d;
+}
+
 /* FORM */
 #product-form {
   background: var(--card);
@@ -298,6 +348,10 @@ body {
   #product-form {
     grid-template-columns: 1fr;
     padding: 2rem;
+  }
+
+  .password-form {
+    grid-template-columns: 1fr;
   }
 
   #product-form textarea,
