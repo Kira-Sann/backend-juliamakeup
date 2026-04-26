@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JuliaMakeup</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/img/IMG-20250606-WA0060.jpg" type="image/x-icon">
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/mobile.css">
+
+    <script defer src="/main.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-content">
+                <h1 class="logo">JuliaMakeup</h1>
+                <div class="header-icons">
+                    <button class="icon-btn" id="favorites-btn">
+                        <i class="fas fa-heart text-xl"></i>
+                        <span class="count-badge" id="favorites-count">0</span>
+                    </button>
+                    <button class="icon-btn" id="cart-btn">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="count-badge" id="cart-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="banner">
+        <div class="banner-container">
+            <div class="hero-content">
+                <h2>Beleza que valoriza quem você é</h2>
+                <p>
+                    Maquiagens selecionadas para realçar sua beleza
+                    com qualidade, confiança e bom gosto.
+                </p>
+                <button class="cta-btn">Ver produtos</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="trust-bar">
+        <div class="trust-container">
+            <div class="trust-item">
+                <i class="fa-solid fa-shield-heart"></i>
+                <span>Compra segura</span>
+            </div>
+
+            <div class="trust-item">
+                <i class="fa-brands fa-whatsapp"></i>
+                <span>Pagamento via WhatsApp</span>
+            </div>
+
+            <div class="trust-item">
+                <i class="fa-solid fa-truck-fast"></i>
+                <span>Entrega rápida</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="products-section">
+        <div class="tabs-container">
+            <div class="tabs">
+                <span class="tab-bg"></span>
+
+                <button class="tab-btn active" data-tab="all">Todos</button>
+                <button class="tab-btn" data-tab="new">Novidades</button>
+                <button class="tab-btn" data-tab="promo">Promoções</button>
+            </div>
+        </div>
+
+        <!-- Busca -->
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar por nome ou descrição..."  />
+        </div>
+
+        <div class="products-grid" id="products-container">
+            <!-- Products will be loaded here -->
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div class="sidebar-overlay" id="cart-overlay" onclick="closeCart()"></div>
+    <div class="sidebar" id="cart-sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Carrinho</h3>
+            <button class="close-btn" title="close-btn" onclick="closeCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content" id="cart-items">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div class="sidebar-footer">
+            <div class="total-row">
+                <span class="text-lg font-semibold">Total:</span>
+                <span id="cart-total" class="text-xl font-bold text-purple-600">R$ 0,00</span>
+            </div>
+            <button id="checkout-btn" class="checkout-btn">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- Favorites Sidebar -->
+    <div class="sidebar-overlay" id="favorites-overlay" onclick="closeFavorites()"></div>
+    <div class="sidebar" id="favorites-sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Favoritos</h3>
+            <button class="close-btn" title="close-btn" onclick="closeFavorites()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content" id="favorites-items">
+            <!-- Favorites items will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeProductModal()"></div>
+
+
+    <!-- Product Modal -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Produto</h3>
+                <button title="closeModal" class="close-btn" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="product-modal-content"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+
+            <span class="footer-brand">JuliaMakeup</span>
+
+            <span class="footer-trust">
+                ✔ Compra segura &nbsp; • &nbsp; ✔ Atendimento via WhatsApp &nbsp; • &nbsp; ✔ Entrega rápida
+            </span>
+
+            <a href="https://wa.me/5547988220959" target="_blank" class="footer-whatsapp">
+                <i class="fa-brands fa-whatsapp"></i>
+                Falar no WhatsApp
+            </a>
+
+        </div>
+
+        <div class="footer-copy">
+            © <span id="year"></span>JuliaMakeup
+        </div>
+    </footer>
+</body>
+
+</html>

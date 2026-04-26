@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/img/IMG-20250606-WA0060.jpg" type="image/x-icon">
+
+    <title>Admin • Produtos</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+    <div class="admin-container">
+
+        <!-- LOGIN -->
+        <div id="admin-login" class="login-card">
+            <h2>Área Administrativa</h2>
+            <input type="password" id="admin-password" placeholder="Senha de acesso">
+            <button onclick="loginAdmin()">Entrar</button>
+            <p id="login-error" class="error"></p>
+        </div>
+
+        <!-- PAINEL -->
+        <div id="admin-panel" style="display:none;">
+
+            <header class="admin-header">
+                <h1>Gerenciar Produtos</h1>
+                <button class="logout" onclick="logoutAdmin()">Sair</button>
+            </header>
+
+            <!-- FORM -->
+            <form id="product-form">
+
+                <input type="text" id="name" placeholder="Nome do produto" required>
+                <input type="number" id="price" placeholder="Preço" step="0.01" required>
+
+                <input type="number" id="stock" placeholder="Estoque" min="0" required>
+
+                <label class="file-input">
+                    <span>Imagem do produto</span>
+                    <input type="file" id="image" accept="image/*">
+                </label>
+
+                <img id="image-preview" />
+
+                <input type="text" id="shortDescription" placeholder="Descrição curta">
+                <textarea id="description" placeholder="Descrição completa"></textarea>
+
+                <div class="checkbox-group">
+                    <div class="isnew">
+                        <input type="checkbox" id="isNew">
+                        <label for="isNew">Novo Produto</label>
+                    </div>
+                    <div class="issale">
+                        <input type="checkbox" id="isSale">
+                        <label for="isSale">Promoção</label>
+                    </div>
+                </div>
+
+                <button type="submit">Salvar Produto</button>
+
+            </form>
+
+            <!-- BUSCA -->
+            <input type="text" id="admin-search" class="search" placeholder="Buscar produto...">
+
+            <!-- LISTA -->
+            <div id="product-list"></div>
+
+        </div>
+
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

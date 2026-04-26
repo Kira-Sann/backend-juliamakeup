@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glamour Makeup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .product-card {
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .heart-icon {
+            transition: all 0.3s ease;
+        }
+        .heart-icon:hover {
+            transform: scale(1.2);
+        }
+        .heart-icon.active {
+            color: #ef4444;
+        }
+        .banner-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Glamour
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="favorites-btn" class="relative p-2 text-gray-600 hover:text-pink-500 transition-colors">
+                        <i class="fas fa-heart text-xl"></i>
+                        <span id="favorites-count" class="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </button>
+                    <button id="cart-btn" class="relative p-2 text-gray-600 hover:text-purple-500 transition-colors">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner -->
+    <section class="banner-gradient text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-5xl font-bold mb-4">Descubra sua Beleza Interior</h2>
+                <p class="text-xl mb-8">Produtos premium de maquiagem para realçar sua beleza natural</p>
+                <button class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                    Explorar Coleção
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white rounded-full p-1 shadow-lg">
+                <button class="tab-btn px-6 py-3 rounded-full transition-all" data-tab="new">
+                    <span class="text-sm font-medium">Novidades</span>
+                </button>
+                <button class="tab-btn px-6 py-3 rounded-full transition-all" data-tab="promo">
+                    <span class="text-sm font-medium">Promoções</span>
+                </button>
+                <button class="tab-btn px-6 py-3 rounded-full transition-all bg-purple-500 text-white" data-tab="all">
+                    <span class="text-sm font-medium">Todos</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Products will be loaded here -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="flex justify-center items-center space-x-2 mt-8">
+            <!-- Pagination buttons will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeCart()"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Carrinho</h3>
+                    <button onclick="closeCart()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="cart-items" class="p-6 overflow-y-auto h-96">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div class="p-6 border-t">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-semibold">Total:</span>
+                    <span id="cart-total" class="text-xl font-bold text-purple-600">R$ 0,00</span>
+                </div>
+                <button class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors">
+                    Finalizar Compra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Sidebar -->
+    <div id="favorites-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeFavorites()"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Favoritos</h3>
+                    <button onclick="closeFavorites()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="favorites-items" class="p-6 overflow-y-auto h-96">
+                <!-- Favorites items will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm">&copy; 2024 Glamour Makeup. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample products data
+        const products = [
+            { id: 1, name: 'Base Líquida HD', price: 89.90, image: 'https://via.placeholder.com/300x300/667eea/ffffff?text=Base+HD', category: 'new', promoPrice: 69.90 },
+            { id: 2, name: 'Paleta de Sombras', price: 129.90, image: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Sombras', category: 'promo', promoPrice: 99.90 },
+            { id: 3, name: 'Batom Matte', price: 49.90, image: 'https://via.placeholder.com/300x300/f093fb/ffffff?text=Batom', category: 'all' },
+            { id: 4, name: 'Delineador Líquido', price: 59.90, image: 'https://via.placeholder.com/300x300/4facfe/ffffff?text=Delineador', category: 'new' },
+            { id: 5, name: 'Corretivo', price: 79.90, image: 'https://via.placeholder.com/300x300/00f2fe/ffffff?text=Corretivo', category: 'promo', promoPrice: 59.90 },
+            { id: 6, name: 'Blush Compacto', price: 69.90, image: 'https://via.placeholder.com/300x300/30cfd0/ffffff?text=Blush', category: 'all' },
+            { id: 7, name: 'Máscara de Cílios', price: 79.90, image: 'https://via.placeholder.com/300x300/a8edea/ffffff?text=Máscara', category: 'new' },
+            { id: 8, name: 'Iluminador', price: 99.90, image: 'https://via.placeholder.com/300x300/fed6e3/ffffff?text=Iluminador', category: 'all' },
+            { id: 9, name: 'Primer Facial', price: 89.90, image: 'https://via.placeholder.com/300x300/ffd1ff/ffffff?text=Primer', category: 'promo', promoPrice: 69.90 },
+            { id: 10, name: 'Gloss Labial', price: 39.90, image: 'https://via.placeholder.com/300x300/ffa8e4/ffffff?text=Gloss', category: 'all' },
+            { id: 11, name: 'Contorno', price: 89.90, image: 'https://via.placeholder.com/300x300/c7ceea/ffffff?text=Contorno', category: 'new' },
+            { id: 12, name: 'Fixador de Maquiagem', price: 69.90, image: 'https://via.placeholder.com/300x300/b5ead7/ffffff?text=Fixador', category: 'all' }
+        ];
+
+        let currentTab = 'all';
+        let currentPage = 1;
+        const itemsPerPage = 8;
+        let cart = [];
+        let favorites = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            setupTabs();
+            setupCartEvents();
+            setupFavoritesEvents();
+        });
+
+        // Tab functionality
+        function setupTabs() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('bg-purple-500', 'text-white'));
+                    btn.classList.add('bg-purple-500', 'text-white');
+                    currentTab = btn.dataset.tab;
+                    currentPage = 1;
+                    loadProducts();
+                });
+            });
+        }
+
+        // Load products based on tab and pagination
+        function loadProducts() {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+            
+            let filteredProducts = products;
+            if (currentTab === 'new') {
+                filteredProducts = products.filter(p => p.category === 'new');
+            } else if (currentTab === 'promo') {
+                filteredProducts = products.filter(p => p.category === 'promo');
+            }
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const displayProducts = filteredProducts.slice(startIndex, endIndex);
+            
+            displayProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                container.appendChild(productCard);
+            });
+            
+            updatePagination(filteredProducts.length);
+        }
+
+        // Create product card
+        function createProductCard(product) {
+            const div = document.createElement('div');
+            div.className = 'product-card bg-white rounded-lg shadow-md overflow-hidden fade-in';
+            const isPromo = product.promoPrice && (currentTab === 'promo' || currentTab === 'all');
+            const price = isPromo ? product.promoPrice : product.price;
+            const originalPrice = isPromo ? product.price : null;
+            
+            div.innerHTML = `
+                <div class="relative">
+                    <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover">
+                    ${originalPrice ? `<span class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs rounded">PROMO</span>` : ''}
+                    <button class="heart-icon absolute top-2 right-2 p-2 bg-white rounded-full shadow-md ${favorites.includes(product.id) ? 'active' : ''}" 
+                            onclick="toggleFavorite(${product.id})">
+                        <i class="fas fa-heart text-gray-400 hover:text-pink-500 ${favorites.includes(product.id) ? 'text-red-500' : ''}"></i>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-2">${product.name}</h3>
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            ${originalPrice ? `<span class="text-gray-400 line-through text-sm">R$ ${originalPrice.toFixed(2)}</span>` : ''}
+                            <p class="text-xl font-bold text-purple-600">R$ ${price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <button onclick="addToCart(${product.id})" 
+                            class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-cart-plus mr-2"></i>Adicionar
+                    </button>
+                </div>
+            `;
+            return div;
+        }
+
+        // Update pagination
+        function updatePagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 mx-1 rounded-lg transition-colors ${i === currentPage ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`;
+                btn.textContent = i;
+                btn.onclick = () => {
+                    currentPage = i;
+                    loadProducts();
+                };
+                pagination.appendChild(btn);
+            }
+        }
+
+        // Cart functionality
+        function setupCartEvents() {
+            document.getElementById('cart-btn').addEventListener('click', openCart);
+        }
+
+        function openCart() {
+            document.getElementById('cart-sidebar').classList.remove('hidden');
+            updateCartDisplay();
+        }
+
+        function closeCart() {
+            document.getElementById('cart-sidebar').classList.add('hidden');
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCartCount();
+            showToast('Produto adicionado ao carrinho!');
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        function updateCartDisplay() {
+            const container = document.getElementById('cart-items');
+            const total = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Carrinho vazio</p>';
+                total.textContent = 'R$ 0,00';
+                return;
+            }
+            
+            container.innerHTML = '';
+            let cartTotal = 0;
+            
+            cart.forEach(item => {
+                const price = item.promoPrice || item.price;
+                const itemTotal = price * item.quantity;
+                cartTotal += itemTotal;
+                
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b';
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                        <div class="ml-4">
+                            <h4 class="font-semibold">${item.name}</h4>
+                            <p class="text-gray-600">R$ ${price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" 
+                                class="px-2 py-1 bg-gray-200 rounded">-</button>
+                        <span class="mx-2">${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" 
+                                class="px-2 py-1 bg-gray-200 rounded">+</button>
+                        <button onclick="removeFromCart(${item.id})" 
+                                class="ml-4 text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            total.textContent = `R$ ${cartTotal.toFixed(2)}`;
+        }
+
+        function updateQuantity(productId, newQuantity) {
+            if (newQuantity <= 0) {
+                removeFromCart(productId);
+            } else {
+                const item = cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity = newQuantity;
+                    updateCartCount();
+                    updateCartDisplay();
+                }
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            updateCartDisplay();
+        }
+
+        // Favorites functionality
+        function setupFavoritesEvents() {
+            document.getElementById('favorites-btn').addEventListener('click', openFavorites);
+        }
+
+        function openFavorites() {
+            document.getElementById('favorites-sidebar').classList.remove('hidden');
+            updateFavoritesDisplay();
+        }
+
+        function closeFavorites() {
+            document.getElementById('favorites-sidebar').classList.add('hidden');
+        }
+
+        function toggleFavorite(productId) {
+            const index = favorites.indexOf(productId);
+            if (index > -1) {
+                favorites = favorites.filter(id => id !== productId);
+            } else {
+                favorites.push(productId);
+            }
+            updateFavoritesCount();
+            loadProducts();
+        }
+
+        function updateFavoritesCount() {
+            document.getElementById('favorites-count').textContent = favorites.length;
+        }
+
+        function updateFavoritesDisplay() {
+            const container = document.getElementById('favorites-items');
+            
+            if (favorites.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Nenhum favorito</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            const favoriteProducts = products.filter(p => favorites.includes(p.id));
+            
+            favoriteProducts.forEach(product => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b';
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <img src="${product.image}" alt="${product.name}" class="w-16 h-16 object-cover rounded">
+                        <div class="ml-4">
+                            <h4 class="font-semibold">${product.name}</h4>
+                            <p class="text-purple-600 font-bold">R$ ${product.price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleFavorite(${product.id})" 
+                            class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-heart text-xl"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
