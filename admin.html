@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/img/IMG-20250606-WA0060.jpg" type="image/x-icon">
-
     <title>Admin • Produtos</title>
     <link rel="stylesheet" href="/css/admin.css">
 </head>
@@ -14,7 +13,6 @@
 
     <div class="admin-container">
 
-        <!-- LOGIN -->
         <div id="admin-login" class="login-card">
             <h2>Área Administrativa</h2>
             <input type="password" id="admin-password" placeholder="Senha de acesso">
@@ -22,28 +20,29 @@
             <p id="login-error" class="error"></p>
         </div>
 
-        <!-- PAINEL -->
         <div id="admin-panel" style="display:none;">
 
             <header class="admin-header">
                 <h1>Gerenciar Produtos</h1>
-                <button class="logout" onclick="logoutAdmin()">Sair</button>
+                <div class="header-actions">
+                    <button type="button" id="toggle-password-panel" class="header-btn">Senha</button>
+                    <button class="logout" onclick="logoutAdmin()">Sair</button>
+                </div>
             </header>
 
-            <form id="password-form" class="password-form">
-                <h2>Alterar senha</h2>
-                <input type="password" id="current-password" placeholder="Senha atual" required>
-                <input type="password" id="new-password" placeholder="Nova senha" required minlength="8">
-                <button type="submit">Atualizar senha</button>
-                <p id="password-message" class="status-message"></p>
-            </form>
+            <section id="password-panel" class="password-panel" hidden>
+                <form id="password-form" class="password-form">
+                    <h2>Alterar senha</h2>
+                    <input type="password" id="current-password" placeholder="Senha atual" required>
+                    <input type="password" id="new-password" placeholder="Nova senha" required minlength="8">
+                    <button type="submit">Atualizar senha</button>
+                    <p id="password-message" class="status-message"></p>
+                </form>
+            </section>
 
-            <!-- FORM -->
             <form id="product-form">
-
                 <input type="text" id="name" placeholder="Nome do produto" required>
                 <input type="number" id="price" placeholder="Preço" step="0.01" required>
-
                 <input type="number" id="stock" placeholder="Estoque" min="0" required>
 
                 <label class="file-input">
@@ -68,13 +67,9 @@
                 </div>
 
                 <button type="submit">Salvar Produto</button>
-
             </form>
 
-            <!-- BUSCA -->
             <input type="text" id="admin-search" class="search" placeholder="Buscar produto...">
-
-            <!-- LISTA -->
             <div id="product-list"></div>
 
         </div>

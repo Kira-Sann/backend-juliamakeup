@@ -34,6 +34,8 @@ const stockInput = document.getElementById("stock");
 const imagePreview = document.getElementById("image-preview");
 const adminSearch = document.getElementById("admin-search");
 const passwordForm = document.getElementById("password-form");
+const passwordPanel = document.getElementById("password-panel");
+const togglePasswordPanelButton = document.getElementById("toggle-password-panel");
 const currentPasswordInput = document.getElementById("current-password");
 const newPasswordInput = document.getElementById("new-password");
 const passwordMessage = document.getElementById("password-message");
@@ -127,6 +129,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadProducts();
 });
 
+if (togglePasswordPanelButton) {
+  togglePasswordPanelButton.addEventListener("click", () => {
+    setPasswordPanelVisibility(Boolean(passwordPanel?.hidden));
+  });
+}
+
 function setPasswordMessage(message, type = "") {
   if (!passwordMessage) return;
 
@@ -138,6 +146,19 @@ function setPasswordMessage(message, type = "") {
   }
 }
 
+function setPasswordPanelVisibility(visible) {
+  if (!passwordPanel || !togglePasswordPanelButton) return;
+
+  passwordPanel.hidden = !visible;
+  togglePasswordPanelButton.classList.toggle("active", visible);
+  togglePasswordPanelButton.textContent = visible ? "Fechar senha" : "Senha";
+
+  if (!visible) {
+    passwordForm?.reset();
+    setPasswordMessage("");
+  }
+}
+
 /*************************
  * RENDERIZA LISTA
  *************************/
@@ -145,7 +166,7 @@ function renderList(listToRender = products) {
   list.innerHTML = "";
 
   if (listToRender.length === 0) {
-    list.innerHTML = "<p>Nenhum produto encontrado</p>";
+    list.innerHTML = "<p class='status-message'>Nenhum produto encontrado</p>";
     return;
   }
 
@@ -154,10 +175,17 @@ function renderList(listToRender = products) {
     div.className = "admin-product";
 
     div.innerHTML = `
-      <strong>${p.name}</strong>
-      <p>${p.shortDescription || ""}</p>
-      <span>Estoque: ${p.stock}</span>
-      <span>R$ ${p.price.toFixed(2)}</span>
+      <div class="product-copy">
+        <strong>${p.name}</strong>
+        <p>${p.shortDescription || "Sem descricao curta"}</p>
+      </div>
+
+      <div class="product-meta">
+        <span>Estoque: ${p.stock}</span>
+        <span>R$ ${Number(p.price).toFixed(2)}</span>
+        ${p.isNew ? "<span>Novo</span>" : ""}
+        ${p.isSale ? "<span>Promocao</span>" : ""}
+      </div>
 
       <div class="actions">
         <button onclick="editProduct(${p.id})">Editar</button>
@@ -215,6 +243,7 @@ function editProduct(id) {
   }
 
   form.querySelector("button").textContent = "Atualizar Produto";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /*************************
@@ -328,6 +357,7 @@ if (passwordForm) {
 
     passwordForm.reset();
     setPasswordMessage("Senha atualizada com sucesso", "success");
+    setTimeout(() => setPasswordPanelVisibility(false), 1200);
   });
 }
 
