@@ -47,7 +47,7 @@ function loginAdmin() {
   const input = document.getElementById("admin-password");
   const error = document.getElementById("login-error");
 
-  if (input.value === ADMIN_PASSWORD) {
+  if (input.value === ADMIN_TOKEN) {
     localStorage.setItem("adminAuth", "true");
     showAdmin();
   } else {
@@ -112,11 +112,20 @@ function renderList(listToRender = products) {
  * SALVAR / REMOVER
  *************************/
 async function removeProduct(id) {
-  await fetch(`${API_URL}/products/${id}`, {
-  method: "DELETE",
-});
+  const res = await fetch(`${API_URL}/products/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: ADMIN_TOKEN
+    }
+  });
 
-  loadProducts();
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    alert(data.error || "Nao foi possivel remover o produto.");
+    return;
+  }
+
+  await loadProducts();
 }
 
 /*************************
@@ -171,22 +180,35 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (editingId) {
-    await fetch(`${API_URL}/products/${editingId}`, {
+    const res = await fetch(`${API_URL}/products/${editingId}`, {
       method: "PUT",
       headers: {
         Authorization: ADMIN_TOKEN
       },
       body: formData
     });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Nao foi possivel atualizar o produto.");
+      return;
+    }
+
     editingId = null;
   } else {
-    await fetch(`${API_URL}/products`, {
+    const res = await fetch(`${API_URL}/products`, {
       method: "POST",
       headers: {
         Authorization: ADMIN_TOKEN
       },
       body: formData
     });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Nao foi possivel criar o produto.");
+      return;
+    }
   }
 
   await loadProducts();

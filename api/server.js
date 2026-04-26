@@ -3,7 +3,7 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_PASSWORD || "julia3535";
 
 const upload = require("./config/multer");
 const cloudinary = require("./config/cloudinary");
@@ -20,7 +20,7 @@ app.use(express.json());
 function auth(req, res, next) {
   const token = req.headers.authorization;
 
-  if (token !== process.env.ADMIN_PASSWORD) {
+  if (token !== ADMIN_TOKEN) {
     return res.status(403).json({ error: "Acesso negado" });
   }
 
@@ -93,7 +93,39 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
 
 
 // PUT → editar produto / estoque
-app.put("/products/:id", auth, async (req, res) => {
+app.patch("/products/:id/stock", (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const delta = Number(req.body.delta);
+    const products = readProducts();
+
+    if (!Number.isFinite(delta)) {
+      return res.status(400).json({ error: "Delta de estoque invalido" });
+    }
+
+    const index = products.findIndex(p => p.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Produto nao encontrado" });
+    }
+
+    const currentStock = Number(products[index].stock) || 0;
+    const nextStock = currentStock + delta;
+
+    if (nextStock < 0) {
+      return res.status(400).json({ error: "Estoque insuficiente" });
+    }
+
+    products[index].stock = nextStock;
+    saveProducts(products);
+
+    res.json(products[index]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao atualizar estoque" });
+  }
+});
+
+app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const products = readProducts();

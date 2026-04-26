@@ -198,6 +198,33 @@ document.addEventListener("click", (e) => {
 });
 
 
+async function updateProductStock(productId, delta) {
+    const res = await fetch(`${API_URL}/products/${productId}/stock`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ delta })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        throw new Error(data.error || "Erro ao atualizar estoque");
+    }
+
+    const index = products.findIndex(p => p.id === productId);
+    if (index !== -1) {
+        products[index] = {
+            ...products[index],
+            ...data,
+            id: Number(data.id ?? products[index].id),
+            stock: Number(data.stock) || 0
+        };
+        products[index].inStock = products[index].stock > 0;
+    }
+
+    return data;
+}
+
 async function addToCart(productId) {
     const product = products.find(p => p.id === productId);
 
@@ -206,33 +233,35 @@ async function addToCart(productId) {
         return;
     }
 
+    try {
+        await updateProductStock(productId, -1);
+
     // 1️⃣ Adiciona no carrinho local
-    const existing = cart.find(item => item.id === productId);
+        const existing = cart.find(item => item.id === productId);
 
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            quantity: 1
-        });
-    }
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: 1
+            });
+        }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
-    updateCartCount();
+        saveCart();
+        updateCartCount();
 
     // 2️⃣ Atualiza estoque na API (CORRIGIDO)
-    await fetch(`${API_URL}/products/${productId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stock: product.stock - 1 })
-    });
-
-    showToast("Produto adicionado ao carrinho");
-    loadProducts();
+        showToast("Produto adicionado ao carrinho");
+        updateCartDisplay();
+        applyFilterAndRender();
+    } catch (err) {
+        console.error(err);
+        showToast(err.message || "Erro ao adicionar produto");
+    }
 }
 
 function updateCartCount() {
@@ -326,27 +355,17 @@ async function removeFromCart(productId) {
     if (!item) return;
 
     try {
-        // devolve estoque na API
-        const res = await fetch(`${API_URL}/products`);
-        const productsApi = await res.json();
-        const product = productsApi.find(p => p.id === productId);
-
-        if (product) {
-            await fetch(`${API_URL}/products/${productId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ stock: product.stock + item.quantity })
-            });
-        }
+        await updateProductStock(productId, item.quantity);
 
         cart = cart.filter(i => i.id !== productId);
         saveCart();
         updateCartDisplay();
         updateCartCount();
+        applyFilterAndRender();
 
     } catch (err) {
         console.error(err);
-        showToast("Erro ao remover item");
+        showToast(err.message || "Erro ao remover item");
     }
 }
 
@@ -363,33 +382,27 @@ async function updateQuantity(productId, newQty) {
     const diff = newQty - item.quantity;
 
     try {
-        // busca produto atualizado da API
-        const res = await fetch(`${API_URL}/products`);
-        const apiProducts = await res.json();
-        const product = apiProducts.find(p => p.id === productId);
-
-        if (!product) return;
+        const product = products.find(p => p.id === productId);
+        if (!product) {
+            throw new Error("Produto nao encontrado");
+        }
 
         if (diff > 0 && product.stock < diff) {
             showToast("Estoque insuficiente");
             return;
         }
 
-        // atualiza estoque na API
-        await fetch(`${API_URL}/products/${productId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ stock: product.stock - diff })
-        });
+        await updateProductStock(productId, -diff);
 
         item.quantity = newQty;
         saveCart();
         updateCartDisplay();
         updateCartCount();
+        applyFilterAndRender();
 
     } catch (err) {
         console.error(err);
-        showToast("Erro ao atualizar quantidade");
+        showToast(err.message || "Erro ao atualizar quantidade");
     }
 }
 
