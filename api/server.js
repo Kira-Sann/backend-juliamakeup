@@ -7,16 +7,15 @@ const jwt = require("jsonwebtoken");
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || "julia3535";
 const JWT_SECRET = process.env.JWT_SECRET;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 const upload = require("./config/multer");
 const cloudinary = require("./config/cloudinary");
 
-const app = express(); // ✅ Declarando o app
-const PORT = process.env.PORT || 3001; // Permite que o serviço escolha a porta
+const app = express();
+const PORT = process.env.PORT || 3001;
 
-// =======================
-// Middlewares
-// =======================
 app.use(cors());
 app.use(express.json());
 
@@ -68,20 +67,46 @@ function auth(req, res, next) {
   }
 }
 
-// =======================
-// "Banco de dados" (JSON)
-// =======================
-const PRODUCTS_FILE = path.join(__dirname, "products.json");
-const ADMIN_USER_FILE = path.join(__dirname, "user.json");
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : __dirname;
 
-function readProducts() {
+function ensureDataDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+function resolveDataFile(filename, fallbackPath) {
+  ensureDataDir();
+
+  const dataFile = path.join(DATA_DIR, filename);
+
+  if (!fs.existsSync(dataFile) && fs.existsSync(fallbackPath)) {
+    fs.copyFileSync(fallbackPath, dataFile);
+  }
+
+  return dataFile;
+}
+
+const PRODUCTS_FILE = resolveDataFile(
+  "products.json",
+  path.join(__dirname, "products.json")
+);
+const ADMIN_USER_FILE = resolveDataFile(
+  "user.json",
+  path.join(__dirname, "user.json")
+);
+
+function readProductsFile() {
   if (!fs.existsSync(PRODUCTS_FILE)) {
     fs.writeFileSync(PRODUCTS_FILE, "[]");
   }
+
   return JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf-8"));
 }
 
-function saveProducts(data) {
+function saveProductsFile(data) {
   fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2));
 }
 
@@ -102,6 +127,168 @@ function readAdminUser() {
 
 function saveAdminUser(data) {
   fs.writeFileSync(ADMIN_USER_FILE, JSON.stringify(data, null, 2));
+}
+
+function hasSupabase() {
+  return Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
+}
+
+function getSupabaseRestUrl(pathname = "") {
+  const baseUrl = SUPABASE_URL.replace(/\/+$/, "");
+  const restPath = pathname ? `/${pathname.replace(/^\/+/, "")}` : "";
+  return `${baseUrl}/rest/v1${restPath}`;
+}
+
+async function supabaseRequest(pathname, options = {}) {
+  if (!hasSupabase()) {
+    throw new Error("Supabase nao configurado");
+  }
+
+  const headers = {
+    apikey: SUPABASE_SECRET_KEY,
+    Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
+    ...options.headers
+  };
+
+  const res = await fetch(getSupabaseRestUrl(pathname), {
+    ...options,
+    headers
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(body || "Erro ao consultar Supabase");
+  }
+
+  if (res.status === 204) {
+    return null;
+  }
+
+  return res.json();
+}
+
+function mapProductFromStore(product = {}) {
+  return {
+    id: Number(product.id),
+    name: product.name || "",
+    price: Number(product.price) || 0,
+    shortDescription: product.short_description ?? product.shortDescription ?? "",
+    description: product.description || "",
+    isNew: product.is_new ?? product.isNew ?? false,
+    isSale: product.is_sale ?? product.isSale ?? false,
+    stock: Number(product.stock) || 0,
+    image: product.image || "",
+    imagePublicId: product.image_public_id ?? product.imagePublicId ?? ""
+  };
+}
+
+function mapProductToStore(product = {}) {
+  return {
+    id: Number(product.id),
+    name: product.name || "",
+    price: Number(product.price) || 0,
+    short_description: product.shortDescription ?? "",
+    description: product.description || "",
+    is_new: Boolean(product.isNew),
+    is_sale: Boolean(product.isSale),
+    stock: Number(product.stock) || 0,
+    image: product.image || "",
+    image_public_id: product.imagePublicId || ""
+  };
+}
+
+async function seedSupabaseProductsIfEmpty() {
+  const existing = await supabaseRequest("products?select=id&limit=1");
+
+  if (Array.isArray(existing) && existing.length > 0) {
+    return;
+  }
+
+  const localProducts = readProductsFile();
+  if (!localProducts.length) {
+    return;
+  }
+
+  await supabaseRequest("products", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal"
+    },
+    body: JSON.stringify(localProducts.map(mapProductToStore))
+  });
+}
+
+async function readProductsStore() {
+  if (!hasSupabase()) {
+    return readProductsFile();
+  }
+
+  await seedSupabaseProductsIfEmpty();
+  const rows = await supabaseRequest("products?select=*&order=id.asc");
+  return rows.map(mapProductFromStore);
+}
+
+async function createProductStore(product) {
+  if (!hasSupabase()) {
+    const products = readProductsFile();
+    products.push(product);
+    saveProductsFile(products);
+    return product;
+  }
+
+  const created = await supabaseRequest("products", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify(mapProductToStore(product))
+  });
+
+  return mapProductFromStore(created[0]);
+}
+
+async function updateProductStore(id, updates) {
+  if (!hasSupabase()) {
+    const products = readProductsFile();
+    const index = products.findIndex((p) => Number(p.id) === id);
+    if (index === -1) return null;
+    products[index] = { ...products[index], ...updates, id };
+    saveProductsFile(products);
+    return products[index];
+  }
+
+  const updated = await supabaseRequest(`products?id=eq.${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify(mapProductToStore({ id, ...updates }))
+  });
+
+  return updated.length ? mapProductFromStore(updated[0]) : null;
+}
+
+async function deleteProductStore(id) {
+  if (!hasSupabase()) {
+    const products = readProductsFile();
+    const index = products.findIndex((p) => Number(p.id) === id);
+    if (index === -1) return null;
+    const [removed] = products.splice(index, 1);
+    saveProductsFile(products);
+    return removed;
+  }
+
+  const deleted = await supabaseRequest(`products?id=eq.${id}`, {
+    method: "DELETE",
+    headers: {
+      Prefer: "return=representation"
+    }
+  });
+
+  return deleted.length ? mapProductFromStore(deleted[0]) : null;
 }
 
 async function isValidAdminPassword(password) {
@@ -181,21 +368,18 @@ app.post("/admin/change-password", auth, async (req, res) => {
   }
 });
 
-// =======================
-// ROTAS
-// =======================
-
-// GET → listar produtos
-app.get("/products", (req, res) => {
-  const products = readProducts();
-  res.json(products);
+app.get("/products", async (req, res) => {
+  try {
+    const products = await readProductsStore();
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao listar produtos" });
+  }
 });
 
-// POST → criar produto
 app.post("/products", auth, upload.single("image"), async (req, res) => {
   try {
-    const products = readProducts();
-
     const {
       name,
       price,
@@ -219,29 +403,25 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
       imagePublicId: req.file?.filename || ""
     };
 
-    products.push(product);
-    saveProducts(products); // ✅ FALTAVA ISSO
-
-    res.status(201).json(product);
+    const createdProduct = await createProductStore(product);
+    res.status(201).json(createdProduct);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao criar produto" });
   }
 });
 
-
-// PUT → editar produto / estoque
-app.patch("/products/:id/stock", (req, res) => {
+app.patch("/products/:id/stock", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const delta = Number(req.body.delta);
-    const products = readProducts();
+    const products = await readProductsStore();
 
     if (!Number.isFinite(delta)) {
       return res.status(400).json({ error: "Delta de estoque invalido" });
     }
 
-    const index = products.findIndex(p => p.id === id);
+    const index = products.findIndex((p) => p.id === id);
     if (index === -1) {
       return res.status(404).json({ error: "Produto nao encontrado" });
     }
@@ -253,10 +433,12 @@ app.patch("/products/:id/stock", (req, res) => {
       return res.status(400).json({ error: "Estoque insuficiente" });
     }
 
-    products[index].stock = nextStock;
-    saveProducts(products);
+    const updatedProduct = await updateProductStore(id, {
+      ...products[index],
+      stock: nextStock
+    });
 
-    res.json(products[index]);
+    res.json(updatedProduct);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao atualizar estoque" });
@@ -266,21 +448,18 @@ app.patch("/products/:id/stock", (req, res) => {
 app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const products = readProducts();
+    const products = await readProductsStore();
 
-    const index = products.findIndex(p => p.id === id);
+    const index = products.findIndex((p) => p.id === id);
     if (index === -1) {
-      return res.status(404).json({ message: "Produto não encontrado" });
+      return res.status(404).json({ message: "Produto nao encontrado" });
     }
 
     const oldProduct = products[index];
-
     let updatedImage = oldProduct.image;
     let updatedPublicId = oldProduct.imagePublicId;
 
-    // 👉 Se enviou nova imagem
     if (req.file) {
-      // 🔥 deleta antiga
       if (oldProduct.imagePublicId) {
         await cloudinary.uploader.destroy(oldProduct.imagePublicId);
       }
@@ -291,7 +470,6 @@ app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
 
     const updatedProduct = {
       ...oldProduct,
-
       name: req.body.name,
       price: Number(req.body.price),
       shortDescription: req.body.shortDescription,
@@ -299,43 +477,34 @@ app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
       stock: Number(req.body.stock),
       isNew: req.body.isNew === "true",
       isSale: req.body.isSale === "true",
-
       image: updatedImage,
       imagePublicId: updatedPublicId,
       id
     };
 
-    products[index] = updatedProduct;
-    saveProducts(products);
-
-    res.json(updatedProduct);
+    const savedProduct = await updateProductStore(id, updatedProduct);
+    res.json(savedProduct);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao atualizar produto" });
   }
 });
 
-// DELETE → remover produto
 app.delete("/products/:id", auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const products = readProducts(); // ✅ FALTAVA
+    const products = await readProductsStore();
+    const product = products.find((p) => p.id === id);
 
-    const index = products.findIndex(p => p.id === id);
-
-    if (index === -1) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+    if (!product) {
+      return res.status(404).json({ error: "Produto nao encontrado" });
     }
-
-    const product = products[index];
 
     if (product.imagePublicId) {
       await cloudinary.uploader.destroy(product.imagePublicId);
     }
 
-    products.splice(index, 1);
-    saveProducts(products);
-
+    await deleteProductStore(id);
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -343,16 +512,10 @@ app.delete("/products/:id", auth, async (req, res) => {
   }
 });
 
-// ROOT
 app.get("/", (req, res) => {
-  res.send("🚀 API Julia Makeup rodando!");
+  res.send("API Julia Makeup rodando!");
 });
 
-// =======================
-// Start do servidor
-// =======================
 app.listen(PORT, () => {
-  console.log(`✅ API rodando em http://localhost:${PORT}`);
+  console.log(`API rodando em http://localhost:${PORT}`);
 });
-
-
