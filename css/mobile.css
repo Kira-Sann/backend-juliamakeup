@@ -1,10 +1,10 @@
 @media (max-width: 768px) {
   .banner {
-    height: 48vh;
+    height: 52vh;
   }
 
   .hero-right h2 {
-    font-size: 2.4rem;
+    font-size: 2rem;
   }
 
   .hero-grid {
@@ -13,6 +13,7 @@
   }
 
   .hero-content p {
+    font-size: 14px;
     max-width: 100%;
   }
   .trust-container {
@@ -20,22 +21,27 @@
     align-items: center;
     gap: 0.8rem;
     text-align: center;
+    padding-top: 1rem;
   }
 
   .grid {
-    grid-template-columns: repeat(2, 1fr)
+    grid-template-columns: repeat(1, 1fr)
   }
 }
 
 @media (max-width: 640px) {
   .banner h2 {
-    font-size: 2rem;
+    font-size: 1.7rem;
   }
 
   .sidebar {
     max-width: 100%;
   }
-  
+
+  .products-grid {
+    gap: .8rem;
+  }
+
 }
 
 @media (min-width: 640px) {
