@@ -25,7 +25,6 @@ body {
 .admin-container {
   max-width: 1100px;
   margin: auto;
-  transform: translatey(50%);
 }
 
 .login-card,
