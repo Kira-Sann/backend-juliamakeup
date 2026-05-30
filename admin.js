@@ -10,12 +10,34 @@ const ADMIN_STORAGE_KEY = "adminToken";
 const isNew = document.getElementById("isNew");
 const isSale = document.getElementById("isSale");
 
+function toBoolean(value) {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+function toOptionalNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
 /*************************
  * API
  *************************/
 async function loadProducts() {
   const res = await fetch(`${API_URL}/products`);
-  products = await res.json();
+  const data = await res.json();
+
+  products = data.map((product) => ({
+    ...product,
+    price: Number(product.price) || 0,
+    oldPrice: toOptionalNumber(product.oldPrice),
+    stock: Number(product.stock) || 0,
+    isNew: toBoolean(product.isNew),
+    isSale: toBoolean(product.isSale),
+    featured: toBoolean(product.featured)
+  }));
+
   renderList(products);
 }
 
@@ -27,10 +49,12 @@ const list = document.getElementById("product-list");
 
 const nameInput = document.getElementById("name");
 const priceInput = document.getElementById("price");
+const oldPriceInput = document.getElementById("oldPrice");
 const imageInput = document.getElementById("image");
 const shortDescInput = document.getElementById("shortDescription");
 const descInput = document.getElementById("description");
 const stockInput = document.getElementById("stock");
+const categoryInput = document.getElementById("category");
 const imagePreview = document.getElementById("image-preview");
 const adminSearch = document.getElementById("admin-search");
 const passwordForm = document.getElementById("password-form");
@@ -39,6 +63,7 @@ const togglePasswordPanelButton = document.getElementById("toggle-password-panel
 const currentPasswordInput = document.getElementById("current-password");
 const newPasswordInput = document.getElementById("new-password");
 const passwordMessage = document.getElementById("password-message");
+const featuredInput = document.getElementById("featured");
 
 /*************************
  * AUTENTICAÇÃO
@@ -173,22 +198,30 @@ function renderList(listToRender = products) {
   listToRender.forEach(p => {
     const div = document.createElement("div");
     div.className = "admin-product";
+    const stock = Number(p.stock) || 0;
+    const oldPrice = p.oldPrice ? Number(p.oldPrice) : null;
 
     div.innerHTML = `
+      <img class="admin-product-thumb" src="${p.image || "/img/julia_logo.png"}" alt="${p.name}">
       <div class="product-copy">
         <strong>${p.name}</strong>
         <p>${p.shortDescription || "Sem descricao curta"}</p>
       </div>
 
       <div class="product-meta">
-        <span>Estoque: ${p.stock}</span>
+        <span class="${stock > 0 && stock <= 3 ? "stock-low" : ""}">Estoque: ${stock}</span>
+        ${stock > 0 && stock <= 3 ? "<span class='stock-low'>Estoque baixo</span>" : ""}
         <span>R$ ${Number(p.price).toFixed(2)}</span>
+        ${oldPrice ? `<span>De R$ ${oldPrice.toFixed(2)}</span>` : ""}
+        ${p.category ? `<span>${p.category}</span>` : ""}
         ${p.isNew ? "<span>Novo</span>" : ""}
         ${p.isSale ? "<span>Promocao</span>" : ""}
+        ${p.featured ? "<span>Destaque</span>" : ""}
       </div>
 
       <div class="actions">
         <button onclick="editProduct(${p.id})">Editar</button>
+        <button onclick="duplicateProduct(${p.id})">Duplicar</button>
         <button onclick="removeProduct(${p.id})">Remover</button>
       </div>
     `;
@@ -231,11 +264,14 @@ function editProduct(id) {
 
   nameInput.value = p.name;
   priceInput.value = p.price;
+  oldPriceInput.value = p.oldPrice ?? "";
   shortDescInput.value = p.shortDescription || "";
   descInput.value = p.description || "";
   stockInput.value = p.stock ?? 0;
+  categoryInput.value = p.category || "";
   isNew.checked = p.isNew;
   isSale.checked = p.isSale;
+  featuredInput.checked = Boolean(p.featured);
 
   if (currentImage) {
     imagePreview.src = currentImage;
@@ -243,6 +279,32 @@ function editProduct(id) {
   }
 
   form.querySelector("button").textContent = "Atualizar Produto";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function duplicateProduct(id) {
+  const p = products.find(prod => prod.id === id);
+  if (!p) return;
+
+  editingId = null;
+  currentImage = p.image || "";
+  nameInput.value = `${p.name} (copia)`;
+  priceInput.value = p.price;
+  oldPriceInput.value = p.oldPrice ?? "";
+  shortDescInput.value = p.shortDescription || "";
+  descInput.value = p.description || "";
+  stockInput.value = p.stock ?? 0;
+  categoryInput.value = p.category || "";
+  isNew.checked = Boolean(p.isNew);
+  isSale.checked = Boolean(p.isSale);
+  featuredInput.checked = Boolean(p.featured);
+
+  if (currentImage) {
+    imagePreview.src = currentImage;
+    imagePreview.style.display = "block";
+  }
+
+  form.querySelector("button").textContent = "Salvar Produto";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -261,11 +323,15 @@ form.addEventListener("submit", async (e) => {
 
   formData.append("name", nameInput.value.trim());
   formData.append("price", priceInput.value);
+  formData.append("oldPrice", oldPriceInput.value);
   formData.append("shortDescription", shortDescInput.value);
   formData.append("description", descInput.value);
   formData.append("stock", stockInput.value);
+  formData.append("category", categoryInput.value);
   formData.append("isNew", isNew.checked);
   formData.append("isSale", isSale.checked);
+  formData.append("featured", featuredInput.checked);
+  formData.append("imageUrl", currentImage);
 
   if (imageInput.files.length > 0) {
     formData.append("image", imageInput.files[0]);

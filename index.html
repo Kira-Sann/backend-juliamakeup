@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JuliaMakeup</title>
+    <title>Morango Makeup</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="icon" href="/img/IMG-20250606-WA0060.jpg" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/style.css">
@@ -20,7 +21,7 @@
     <header>
         <div class="header-container">
             <div class="header-content">
-                <h1 class="logo">JuliaMakeup</h1>
+                <h1 class="logo">Morango Makeup</h1>
                 <div class="header-icons">
                     <button class="icon-btn" id="favorites-btn">
                         <i class="fas fa-heart text-xl"></i>
@@ -38,12 +39,19 @@
     <section class="banner">
         <div class="banner-container">
             <div class="hero-content">
-                <h2>Beleza que valoriza quem você é</h2>
+                <span class="hero-eyebrow">Curadoria de beleza</span>
+                <h2>Morango Makeup</h2>
                 <p>
-                    Maquiagens selecionadas para realçar sua beleza
-                    com qualidade, confiança e bom gosto.
+                    Maquiagens selecionadas para realcar sua beleza
+                    com delicadeza, qualidade e um toque doce.
                 </p>
-                <button class="cta-btn"> <a href="#products-section">Ver produtos</a></button>
+                <a class="cta-btn" href="#products-section">
+                    Ver produtos
+                    <i class="fa-solid fa-arrow-down"></i>
+                </a>
+            </div>
+            <div class="hero-art">
+                <img src="/img/morango-banner.png" alt="Ilustracao da Morango Makeup">
             </div>
         </div>
     </section>
@@ -62,26 +70,42 @@
 
             <div class="trust-item">
                 <i class="fa-solid fa-truck-fast"></i>
-                <span>Entrega rápida</span>
+                <span>Entrega rapida</span>
             </div>
         </div>
     </section>
 
     <section id="products-section" class="products-section">
-        <div class="tabs-container">
-            <div class="tabs">
-                <span class="tab-bg"></span>
+        <div class="section-heading">
+            <span class="section-kicker">Vitrine</span>
+            <h2>Escolha seus favoritos</h2>
+            <p>Busque por produto, descubra novidades e acompanhe promoções sem perder o carrinho.</p>
+        </div>
 
-                <button class="tab-btn active" data-tab="all">Todos</button>
-                <button class="tab-btn" data-tab="new">Novidades</button>
-                <button class="tab-btn" data-tab="promo">Promoções</button>
+        <div class="filters-panel">
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Buscar por nome ou descricao..." />
+            </div>
+
+            <div class="filter-groups">
+                <div class="filter-group" aria-label="Filtros principais">
+                    <button class="filter-btn active" data-tab="all">Todos</button>
+                    <button class="filter-btn" data-tab="featured">Destaques</button>
+                    <button class="filter-btn" data-tab="new">Novidades</button>
+                    <button class="filter-btn" data-tab="promo">Promocoes</button>
+                </div>
+
+                <div class="filter-group" aria-label="Categorias">
+                    <button class="filter-btn" data-tab="maquiagem">Maquiagem</button>
+                    <button class="filter-btn" data-tab="skincare">Skincare</button>
+                    <button class="filter-btn" data-tab="labios">Labios</button>
+                    <button class="filter-btn" data-tab="cabelo">Cabelo</button>
+                    <button class="filter-btn" data-tab="acessorios">Acessorios</button>
+                </div>
             </div>
         </div>
 
-        <!-- Busca -->
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar por nome ou descrição..."  />
-        </div>
 
         <div class="products-grid" id="products-container">
             <!-- Products will be loaded here -->
@@ -92,7 +116,6 @@
         </div>
     </section>
 
-    <!-- Cart Sidebar -->
     <div class="sidebar-overlay" id="cart-overlay" onclick="closeCart()"></div>
     <div class="sidebar" id="cart-sidebar">
         <div class="sidebar-header">
@@ -113,7 +136,6 @@
         </div>
     </div>
 
-    <!-- Favorites Sidebar -->
     <div class="sidebar-overlay" id="favorites-overlay" onclick="closeFavorites()"></div>
     <div class="sidebar" id="favorites-sidebar">
         <div class="sidebar-header">
@@ -127,16 +149,14 @@
         </div>
     </div>
 
-    <!-- Overlay -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeProductModal()"></div>
 
-
-    <!-- Product Modal -->
     <div class="modal" id="product-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Detalhes do Produto</h3>
-                <button title="closeModal" class="close-btn" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+                <button title="closeModal" class="close-btn" onclick="closeProductModal()"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" id="product-modal-content"></div>
         </div>
@@ -145,10 +165,10 @@
     <footer class="footer">
         <div class="footer-content">
 
-            <span class="footer-brand">JuliaMakeup</span>
+            <span class="footer-brand">Morango Makeup</span>
 
             <span class="footer-trust">
-                ✔ Compra segura &nbsp; • &nbsp; ✔ Atendimento via WhatsApp &nbsp; • &nbsp; ✔ Entrega rápida
+                Compra segura &nbsp; • &nbsp; Atendimento via WhatsApp &nbsp; • &nbsp; Entrega rapida
             </span>
 
             <a href="https://wa.me/5547988220959" target="_blank" class="footer-whatsapp">
@@ -159,7 +179,7 @@
         </div>
 
         <div class="footer-copy">
-            © <span id="year"></span>JuliaMakeup
+            © <span id="year"></span>Morango Makeup
         </div>
     </footer>
 </body>

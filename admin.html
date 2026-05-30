@@ -43,7 +43,16 @@
             <form id="product-form">
                 <input type="text" id="name" placeholder="Nome do produto" required>
                 <input type="number" id="price" placeholder="Preço" step="0.01" required>
+                <input type="number" id="oldPrice" placeholder="Preço antigo (opcional)" step="0.01">
                 <input type="number" id="stock" placeholder="Estoque" min="0" required>
+                <select id="category">
+                    <option value="">Categoria</option>
+                    <option value="maquiagem">Maquiagem</option>
+                    <option value="skincare">Skincare</option>
+                    <option value="labios">Lábios</option>
+                    <option value="cabelo">Cabelo</option>
+                    <option value="acessorios">Acessórios</option>
+                </select>
 
                 <label class="file-input">
                     <span>Imagem do produto</span>
@@ -63,6 +72,10 @@
                     <div class="issale">
                         <input type="checkbox" id="isSale">
                         <label for="isSale">Promoção</label>
+                    </div>
+                    <div class="isfeatured">
+                        <input type="checkbox" id="featured">
+                        <label for="featured">Destaque</label>
                     </div>
                 </div>
 

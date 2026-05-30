@@ -51,6 +51,7 @@ body {
 .login-card input,
 .login-card button,
 #product-form input,
+#product-form select,
 #product-form textarea,
 #product-form button,
 .password-form input,
@@ -69,6 +70,7 @@ body {
 
 .login-card input,
 #product-form input,
+#product-form select,
 #product-form textarea,
 .password-form input,
 .search {
@@ -214,6 +216,7 @@ body {
 }
 
 #product-form input:focus,
+#product-form select:focus,
 #product-form textarea:focus,
 .password-form input:focus,
 .search:focus,
@@ -309,6 +312,11 @@ body {
   transition: ease-in-out 0.3s;
 }
 
+.isfeatured:has(input:checked)::before {
+  background: #f59e0b;
+  transition: ease-in-out 0.3s;
+}
+
 .search {
   margin-top: .85rem;
 }
@@ -323,8 +331,18 @@ body {
   border-radius: 18px;
   padding: 1rem 1.15rem;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 72px 1fr auto;
   gap: .8rem;
+  align-items: center;
+}
+
+.admin-product-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #f8f7fc;
+  border: 1px solid var(--border);
 }
 
 .product-copy strong {
@@ -354,6 +372,12 @@ body {
   padding: .35rem .7rem;
 }
 
+.product-meta .stock-low {
+  background: #fff1d6;
+  color: #9a5b00;
+  font-weight: 700;
+}
+
 .actions {
   display: flex;
   gap: .6rem;
@@ -370,6 +394,10 @@ body {
 
 .actions button:first-child {
   background: #eef2ff;
+}
+
+.actions button:nth-child(2) {
+  background: #fff7ed;
 }
 
 .actions button:last-child {
@@ -431,6 +459,11 @@ body {
 
   .admin-product {
     grid-template-columns: 1fr;
+  }
+
+  .admin-product-thumb {
+    width: 100%;
+    height: 150px;
   }
 
   .product-meta,

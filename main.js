@@ -13,6 +13,21 @@ const API_URL = "https://backend-juliamakeup.onrender.com";
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let favorites = (JSON.parse(localStorage.getItem("favorites")) || []).map(Number);
 
+function toBoolean(value) {
+    return value === true || value === "true" || value === 1 || value === "1";
+}
+
+function toOptionalNumber(value) {
+    if (value === null || value === undefined || value === "") return null;
+
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function hasValidOldPrice(product) {
+    return Boolean(product.oldPrice && product.oldPrice > product.price);
+}
+
 /*************************
  * API
  *************************/
@@ -28,7 +43,17 @@ async function loadProducts() {
             id: Number(p.id),                 // 👈 ESSENCIAL
             stock: Number(p.stock) || 0,
             inStock: Number(p.stock) > 0,
-            oldPrice: typeof p.oldPrice === "number" ? p.oldPrice : null
+            price: Number(p.price) || 0,
+            oldPrice: toOptionalNumber(p.oldPrice),
+            category: normalizeText(p.category || ""),
+            isNew: toBoolean(p.isNew),
+            isSale: toBoolean(p.isSale),
+            featured: toBoolean(p.featured)
+        }));
+
+        products = products.map(p => ({
+            ...p,
+            isSale: p.isSale || hasValidOldPrice(p)
         }));
 
         applyFilterAndRender();
@@ -44,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
     setupSearch();
 
-    if (typeof setupTabIndicator === "function") setupTabIndicator();
+    setupFilters();
     if (typeof setupCartEvents === "function") setupCartEvents();
     if (typeof setupFavoritesEvents === "function") setupFavoritesEvents();
     updateFavoritesCount();
@@ -94,45 +119,39 @@ function matchesSearch(product, search) {
 function applyFilterAndRender() {
     let temp = [...products];
 
-    if (currentTab === "new") temp = temp.filter(p => p.isNew);
-    if (currentTab === "promo") temp = temp.filter(p => p.isSale);
+    if (currentTab === "featured") temp = temp.filter(p => p.featured);
+    else if (currentTab === "new") temp = temp.filter(p => p.isNew);
+    else if (currentTab === "promo") temp = temp.filter(p => p.isSale);
+    else if (currentTab !== "all") temp = temp.filter(p => p.category === currentTab);
 
     if (searchTerm.length >= 2) {
         temp = temp.filter(p => matchesSearch(p, searchTerm));
     }
 
-    filteredProducts = temp;
-    currentPage = 1;
-
+    filteredProducts = temp.sort((a, b) => Number(b.featured) - Number(a.featured));
     renderProducts();
     renderPagination();
 }
 
-function setupTabIndicator() {
-    const tabs = document.querySelectorAll(".tab-btn");
-    const bg = document.querySelector(".tab-bg");
+function setupFilters() {
+    const buttons = document.querySelectorAll(".filter-btn");
+    if (!buttons.length) return;
 
-    if (!tabs.length || !bg) return;
+    buttons.forEach(button => {
+        button.setAttribute("aria-pressed", button.classList.contains("active") ? "true" : "false");
 
-    function move(tab) {
-        const r = tab.getBoundingClientRect();
-        const pr = tab.parentElement.getBoundingClientRect();
-        bg.style.transform = `translateX(${r.left - pr.left}px)`;
-        bg.style.width = `${r.width}px`;
-    }
+        button.addEventListener("click", () => {
+            buttons.forEach(btn => {
+                const active = btn === button;
+                btn.classList.toggle("active", active);
+                btn.setAttribute("aria-pressed", active ? "true" : "false");
+            });
 
-    tabs.forEach(tab => {
-        tab.addEventListener("click", () => {
-            tabs.forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-            currentTab = tab.dataset.tab;
-            move(tab);
+            currentTab = button.dataset.tab || "all";
+            currentPage = 1;
             applyFilterAndRender();
         });
     });
-
-    const active = document.querySelector(".tab-btn.active");
-    if (active) move(active);
 }
 
 function renderProducts() {
@@ -157,7 +176,11 @@ function renderProducts() {
                     class="product-image"
                     onclick="openProductModal(${p.id})"
                 />
-
+                <div class="product-badges">
+                    ${p.featured ? `<span class="badge badge-featured">Destaque</span>` : ""}
+                    ${p.isNew ? `<span class="badge badge-new">Novo</span>` : ""}
+                    ${p.isSale ? `<span class="badge badge-sale">Promoção</span>` : ""}
+                </div>
                <button class="heart-btn" data-id="${p.id}">
                     <i class="fa-solid fa-heart ${favorites.includes(p.id) ? "active" : ""}"></i>
                 </button>
@@ -168,9 +191,10 @@ function renderProducts() {
                 <p>${p.shortDescription || ""}</p>
 
                 <div class="price-container">
-                    ${p.oldPrice ? `<span class="original-price">R$ ${p.oldPrice.toFixed(2)}</span>` : ""}
+                    ${hasValidOldPrice(p) ? `<span class="original-price">R$ ${p.oldPrice.toFixed(2)}</span>` : ""}
                     <span class="current-price">R$ ${p.price.toFixed(2)}</span>
                 </div>
+                ${p.stock > 0 && p.stock <= 3 ? `<span class="low-stock-label">Ultimas unidades</span>` : ""}
 
                 ${p.stock > 0
             ? `<button class="add-to-cart-btn" onclick="addToCart(${p.id})">Adicionar</button>`
@@ -234,12 +258,13 @@ async function addToCart(productId) {
     }
 
     try {
-        await updateProductStock(productId, -1);
-
-    // 1️⃣ Adiciona no carrinho local
         const existing = cart.find(item => item.id === productId);
 
         if (existing) {
+            if (existing.quantity >= product.stock) {
+                showToast("Estoque insuficiente");
+                return;
+            }
             existing.quantity += 1;
         } else {
             cart.push({
@@ -253,8 +278,6 @@ async function addToCart(productId) {
 
         saveCart();
         updateCartCount();
-
-    // 2️⃣ Atualiza estoque na API (CORRIGIDO)
         showToast("Produto adicionado ao carrinho");
         updateCartDisplay();
         applyFilterAndRender();
@@ -272,10 +295,12 @@ function updateCartCount() {
 function setupCartEvents() {
     const btn = document.getElementById("cart-btn");
     const overlay = document.getElementById("cart-overlay");
+    const checkoutBtn = document.getElementById("checkout-btn");
 
     if (!btn || !overlay) return;
 
     btn.onclick = openCart;
+    if (checkoutBtn) checkoutBtn.onclick = checkoutCart;
 
     overlay.addEventListener("click", closeCart);
 
@@ -285,6 +310,45 @@ function setupCartEvents() {
         sidebar.addEventListener("click", (e) => {
             e.stopPropagation();
         });
+    }
+}
+
+async function checkoutCart() {
+    if (!cart.length) {
+        showToast("Carrinho vazio");
+        return;
+    }
+
+    try {
+        for (const item of cart) {
+            await updateProductStock(item.id, -item.quantity);
+        }
+
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const lines = cart.map((item) => {
+            const subtotal = item.price * item.quantity;
+            return `- ${item.name} | qtd: ${item.quantity} | un: R$ ${item.price.toFixed(2)} | subtotal: R$ ${subtotal.toFixed(2)}`;
+        });
+
+        const message = [
+            "Ola! Quero finalizar este pedido na Morango Makeup:",
+            "",
+            ...lines,
+            "",
+            `Total: R$ ${total.toFixed(2)}`,
+            "",
+            "Observacao:"
+        ].join("\n");
+
+        window.open(`https://wa.me/5547988220959?text=${encodeURIComponent(message)}`, "_blank");
+        cart = [];
+        saveCart();
+        updateCartDisplay();
+        updateCartCount();
+        await loadProducts();
+    } catch (err) {
+        console.error(err);
+        showToast(err.message || "Erro ao finalizar pedido");
     }
 }
 
@@ -355,8 +419,6 @@ async function removeFromCart(productId) {
     if (!item) return;
 
     try {
-        await updateProductStock(productId, item.quantity);
-
         cart = cart.filter(i => i.id !== productId);
         saveCart();
         updateCartDisplay();
@@ -387,12 +449,10 @@ async function updateQuantity(productId, newQty) {
             throw new Error("Produto nao encontrado");
         }
 
-        if (diff > 0 && product.stock < diff) {
+        if (diff > 0 && newQty > product.stock) {
             showToast("Estoque insuficiente");
             return;
         }
-
-        await updateProductStock(productId, -diff);
 
         item.quantity = newQty;
         saveCart();
@@ -523,9 +583,8 @@ function openProductModal(id) {
     const p = products.find(p => p.id === id);
     if (!p) return;
 
-    const promo = p.promoPrice && (currentTab === 'promo' || currentTab === 'all');
-    const price = promo ? p.promoPrice : p.price;
-    const old = promo ? p.price : null;
+    const price = p.price;
+    const old = hasValidOldPrice(p) ? p.oldPrice : null;
 
     // Lógica para o botão fora de estoque dentro do modal
     let modalActionButtonHTML = '';
@@ -556,7 +615,7 @@ function openProductModal(id) {
                 <meta itemprop="price" content="${p.price}">
 
                 <div class="modal-price">
-                    ${old ? `<span class="old-price">R$ ${old.toFixed()}</span>` : ''}
+                    ${old ? `<span class="old-price">R$ ${old.toFixed(2)}</span>` : ''}
                     <span class="price">R$ ${price.toFixed(2)}</span>
                 </div>
                 <div style="margin-bottom:1.5rem">
@@ -583,3 +642,4 @@ function closeProductModal() {
     document.getElementById('modal-overlay').classList.remove('open');
     document.body.classList.remove('no-scroll');
 };
+

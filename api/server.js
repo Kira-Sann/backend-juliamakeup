@@ -172,10 +172,13 @@ function mapProductFromStore(product = {}) {
     id: Number(product.id),
     name: product.name || "",
     price: Number(product.price) || 0,
+    oldPrice: product.old_price === null || product.old_price === undefined ? null : Number(product.old_price),
     shortDescription: product.short_description ?? product.shortDescription ?? "",
     description: product.description || "",
+    category: product.category || "",
     isNew: product.is_new ?? product.isNew ?? false,
     isSale: product.is_sale ?? product.isSale ?? false,
+    featured: product.featured ?? product.featuredProduct ?? false,
     stock: Number(product.stock) || 0,
     image: product.image || "",
     imagePublicId: product.image_public_id ?? product.imagePublicId ?? ""
@@ -187,10 +190,13 @@ function mapProductToStore(product = {}) {
     id: Number(product.id),
     name: product.name || "",
     price: Number(product.price) || 0,
+    old_price: product.oldPrice ? Number(product.oldPrice) : null,
     short_description: product.shortDescription ?? "",
     description: product.description || "",
+    category: product.category || "",
     is_new: Boolean(product.isNew),
     is_sale: Boolean(product.isSale),
+    featured: Boolean(product.featured),
     stock: Number(product.stock) || 0,
     image: product.image || "",
     image_public_id: product.imagePublicId || ""
@@ -383,10 +389,13 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
     const {
       name,
       price,
+      oldPrice,
       shortDescription,
       description,
+      category,
       isNew,
       isSale,
+      featured,
       stock
     } = req.body;
 
@@ -394,12 +403,15 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
       id: Date.now(),
       name,
       price: Number(price),
+      oldPrice: oldPrice ? Number(oldPrice) : null,
       shortDescription,
       description,
+      category,
       isNew: isNew === "true",
       isSale: isSale === "true",
+      featured: featured === "true",
       stock: Number(stock),
-      image: req.file?.path || "",
+      image: req.file?.path || req.body.imageUrl || "",
       imagePublicId: req.file?.filename || ""
     };
 
@@ -472,11 +484,14 @@ app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
       ...oldProduct,
       name: req.body.name,
       price: Number(req.body.price),
+      oldPrice: req.body.oldPrice ? Number(req.body.oldPrice) : null,
       shortDescription: req.body.shortDescription,
       description: req.body.description,
+      category: req.body.category,
       stock: Number(req.body.stock),
       isNew: req.body.isNew === "true",
       isSale: req.body.isSale === "true",
+      featured: req.body.featured === "true",
       image: updatedImage,
       imagePublicId: updatedPublicId,
       id
