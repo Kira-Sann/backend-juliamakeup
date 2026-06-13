@@ -9,6 +9,11 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || 
 const JWT_SECRET = process.env.JWT_SECRET;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const HAS_CLOUDINARY_CONFIG = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
 
 const upload = require("./config/multer");
 const cloudinary = require("./config/cloudinary");
@@ -18,6 +23,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 function getAdminPassword() {
   return ADMIN_PASSWORD;
@@ -168,6 +174,10 @@ async function supabaseRequest(pathname, options = {}) {
 }
 
 function mapProductFromStore(product = {}) {
+  const discounted = hasValidOldPrice(product);
+  const images = mergeImageLists(product.images, product.image);
+  const imagePublicIds = mergeImageLists(product.image_public_ids, product.image_public_id, product.imagePublicId);
+
   return {
     id: Number(product.id),
     name: product.name || "",
@@ -177,15 +187,65 @@ function mapProductFromStore(product = {}) {
     description: product.description || "",
     category: product.category || "",
     isNew: product.is_new ?? product.isNew ?? false,
-    isSale: product.is_sale ?? product.isSale ?? false,
-    featured: product.featured ?? product.featuredProduct ?? false,
+    isSale: Boolean(product.is_sale ?? product.isSale) || discounted,
+    featured: Boolean(product.featured ?? product.featuredProduct) || discounted,
     stock: Number(product.stock) || 0,
-    image: product.image || "",
-    imagePublicId: product.image_public_id ?? product.imagePublicId ?? ""
+    image: images[0] || "",
+    images,
+    imagePublicId: imagePublicIds[0] || "",
+    imagePublicIds
   };
 }
 
+function normalizeImageList(value) {
+  if (!value) return [];
+
+  const raw = Array.isArray(value) ? value : [value];
+  return raw
+    .flatMap((item) => {
+      if (!item) return [];
+      if (typeof item === "string") {
+        try {
+          const parsed = JSON.parse(item);
+          if (Array.isArray(parsed)) return parsed;
+        } catch (err) {
+          // keep raw string below
+        }
+        return [item];
+      }
+
+      return [item];
+    })
+    .map((item) => String(item).trim())
+    .filter(Boolean);
+}
+
+function mergeImageLists(...values) {
+  return [...new Set(values.flatMap((value) => normalizeImageList(value)))];
+}
+
+function normalizeImagePublicIds(value) {
+  return normalizeImageList(value);
+}
+
+function getRetainedPublicIds(oldImages = [], oldPublicIds = [], retainedImages = []) {
+  const retained = new Set(retainedImages);
+  return oldPublicIds.filter((publicId, index) => retained.has(oldImages[index]));
+}
+
+function hasValidOldPrice(product = {}) {
+  const price = Number(product.price) || 0;
+  const oldPrice = Number(product.oldPrice ?? product.old_price);
+
+  return Number.isFinite(oldPrice) && oldPrice > price;
+}
+
 function mapProductToStore(product = {}) {
+  const images = mergeImageLists(product.images, product.image);
+  const imagePublicIds = mergeImageLists(product.imagePublicIds, product.imagePublicId);
+
+  // The Supabase table still uses the legacy single-image columns, so we
+  // keep the gallery as JSON text there and expand it again when reading.
   return {
     id: Number(product.id),
     name: product.name || "",
@@ -195,12 +255,41 @@ function mapProductToStore(product = {}) {
     description: product.description || "",
     category: product.category || "",
     is_new: Boolean(product.isNew),
-    is_sale: Boolean(product.isSale),
-    featured: Boolean(product.featured),
+    is_sale: Boolean(product.isSale) || hasValidOldPrice(product),
+    featured: Boolean(product.featured) || hasValidOldPrice(product),
     stock: Number(product.stock) || 0,
-    image: product.image || "",
-    image_public_id: product.imagePublicId || ""
+    image: images.length ? JSON.stringify(images) : "",
+    image_public_id: imagePublicIds.length ? JSON.stringify(imagePublicIds) : ""
   };
+}
+
+function collectUploadedImages(req) {
+  const singleImage = req.files?.image?.[0];
+  const galleryImages = req.files?.images || [];
+  const files = [singleImage, ...galleryImages].filter(Boolean);
+
+  return files.map((file) => ({
+    url: file.path && /^https?:\/\//i.test(file.path)
+      ? file.path
+      : `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+    publicId: file.filename || ""
+  })).filter((entry) => entry.url);
+}
+
+async function destroyImagePublicIds(publicIds = []) {
+  const ids = normalizeImagePublicIds(publicIds);
+
+  if (HAS_CLOUDINARY_CONFIG) {
+    await Promise.all(ids.map((publicId) => cloudinary.uploader.destroy(publicId)));
+    return;
+  }
+
+  await Promise.all(ids.map(async (filename) => {
+    const filepath = path.join(__dirname, "uploads", path.basename(filename));
+    if (fs.existsSync(filepath)) {
+      await fs.promises.unlink(filepath);
+    }
+  }));
 }
 
 async function seedSupabaseProductsIfEmpty() {
@@ -233,6 +322,17 @@ async function readProductsStore() {
   await seedSupabaseProductsIfEmpty();
   const rows = await supabaseRequest("products?select=*&order=id.asc");
   return rows.map(mapProductFromStore);
+}
+
+async function readProductStore(id) {
+  if (!hasSupabase()) {
+    const products = readProductsFile();
+    return products.find((product) => Number(product.id) === id) || null;
+  }
+
+  await seedSupabaseProductsIfEmpty();
+  const rows = await supabaseRequest(`products?id=eq.${id}&select=*&limit=1`);
+  return rows.length ? mapProductFromStore(rows[0]) : null;
 }
 
 async function createProductStore(product) {
@@ -384,7 +484,31 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.post("/products", auth, upload.single("image"), async (req, res) => {
+app.get("/products/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!Number.isFinite(id) || id <= 0) {
+      return res.status(400).json({ error: "ID de produto invalido" });
+    }
+
+    const product = await readProductStore(id);
+
+    if (!product) {
+      return res.status(404).json({ error: "Produto nao encontrado" });
+    }
+
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao carregar produto" });
+  }
+});
+
+app.post("/products", auth, upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "images", maxCount: 8 }
+]), async (req, res) => {
   try {
     const {
       name,
@@ -399,6 +523,12 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
       stock
     } = req.body;
 
+    const uploadedImages = collectUploadedImages(req);
+    const imageUrls = uploadedImages.map((item) => item.url);
+    const imagePublicIds = uploadedImages.map((item) => item.publicId).filter(Boolean);
+
+    const productImages = mergeImageLists(req.body.existingImages, req.body.imageUrl, imageUrls);
+
     const product = {
       id: Date.now(),
       name,
@@ -408,11 +538,13 @@ app.post("/products", auth, upload.single("image"), async (req, res) => {
       description,
       category,
       isNew: isNew === "true",
-      isSale: isSale === "true",
-      featured: featured === "true",
+      isSale: isSale === "true" || (oldPrice ? Number(oldPrice) > Number(price) : false),
+      featured: featured === "true" || (oldPrice ? Number(oldPrice) > Number(price) : false),
       stock: Number(stock),
-      image: req.file?.path || req.body.imageUrl || "",
-      imagePublicId: req.file?.filename || ""
+      image: productImages[0] || "",
+      images: productImages,
+      imagePublicId: imagePublicIds[0] || "",
+      imagePublicIds
     };
 
     const createdProduct = await createProductStore(product);
@@ -457,7 +589,10 @@ app.patch("/products/:id/stock", async (req, res) => {
   }
 });
 
-app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
+app.put("/products/:id", auth, upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "images", maxCount: 8 }
+]), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const products = await readProductsStore();
@@ -468,17 +603,20 @@ app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
     }
 
     const oldProduct = products[index];
-    let updatedImage = oldProduct.image;
-    let updatedPublicId = oldProduct.imagePublicId;
+    const uploadedImages = collectUploadedImages(req);
+    const imageUrls = uploadedImages.map((item) => item.url);
+    const imagePublicIds = uploadedImages.map((item) => item.publicId).filter(Boolean);
+    const oldImages = mergeImageLists(oldProduct.images, oldProduct.image);
+    const oldPublicIds = mergeImageLists(oldProduct.imagePublicIds, oldProduct.imagePublicId);
+    const retainedImages = Object.prototype.hasOwnProperty.call(req.body, "existingImages")
+      ? normalizeImageList(req.body.existingImages)
+      : oldImages;
+    const retainedPublicIds = getRetainedPublicIds(oldImages, oldPublicIds, retainedImages);
+    const removedPublicIds = oldPublicIds.filter((publicId) => !retainedPublicIds.includes(publicId));
+    const nextImages = mergeImageLists(retainedImages, imageUrls);
+    const nextPublicIds = mergeImageLists(retainedPublicIds, imagePublicIds);
 
-    if (req.file) {
-      if (oldProduct.imagePublicId) {
-        await cloudinary.uploader.destroy(oldProduct.imagePublicId);
-      }
-
-      updatedImage = req.file.path;
-      updatedPublicId = req.file.filename;
-    }
+    await destroyImagePublicIds(removedPublicIds);
 
     const updatedProduct = {
       ...oldProduct,
@@ -490,10 +628,12 @@ app.put("/products/:id", auth, upload.single("image"), async (req, res) => {
       category: req.body.category,
       stock: Number(req.body.stock),
       isNew: req.body.isNew === "true",
-      isSale: req.body.isSale === "true",
-      featured: req.body.featured === "true",
-      image: updatedImage,
-      imagePublicId: updatedPublicId,
+      isSale: req.body.isSale === "true" || (req.body.oldPrice ? Number(req.body.oldPrice) > Number(req.body.price) : false),
+      featured: req.body.featured === "true" || (req.body.oldPrice ? Number(req.body.oldPrice) > Number(req.body.price) : false),
+      image: nextImages[0] || "",
+      images: nextImages,
+      imagePublicId: nextPublicIds[0] || "",
+      imagePublicIds: nextPublicIds,
       id
     };
 
@@ -515,9 +655,7 @@ app.delete("/products/:id", auth, async (req, res) => {
       return res.status(404).json({ error: "Produto nao encontrado" });
     }
 
-    if (product.imagePublicId) {
-      await cloudinary.uploader.destroy(product.imagePublicId);
-    }
+    await destroyImagePublicIds(mergeImageLists(product.imagePublicIds, product.imagePublicId));
 
     await deleteProductStore(id);
     res.json({ success: true });

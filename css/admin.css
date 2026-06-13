@@ -160,6 +160,75 @@ body {
   margin-top: -.1rem;
 }
 
+.history-panel {
+  background: var(--card);
+  border: 1px solid rgba(227, 223, 244, 0.9);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  padding: 1.1rem 1.15rem;
+}
+
+.history-header {
+  display: grid;
+  gap: .25rem;
+  margin-bottom: .9rem;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.history-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.history-list {
+  display: grid;
+  gap: .7rem;
+}
+
+.history-item {
+  display: grid;
+  gap: .35rem;
+  padding: .85rem .95rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fbfaff;
+}
+
+.history-item-top {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: center;
+}
+
+.history-item-top strong {
+  color: var(--primary);
+  text-transform: capitalize;
+}
+
+.history-item-top span {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.history-item p {
+  margin: 0;
+  color: var(--text);
+  font-size: .88rem;
+  line-height: 1.45;
+}
+
+.history-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
 .password-form {
   padding: 1rem 1.15rem;
   border-radius: 18px;
@@ -249,12 +318,59 @@ body {
 }
 
 #image-preview {
-  max-height: 180px;
-  object-fit: contain;
-  border-radius: 14px;
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 92px));
+  gap: .6rem;
+  align-items: start;
+  min-height: 84px;
   margin-top: .25rem;
+  padding: .75rem;
   border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: #fbfaff;
+}
+
+.preview-tile {
+  position: relative;
+}
+
+.image-preview-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid rgba(220, 20, 60, .3);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .12);
+}
+
+.preview-remove:hover {
+  background: #fee2e2;
+}
+
+.preview-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
 }
 
 .checkbox-group {

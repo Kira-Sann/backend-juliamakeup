@@ -323,5 +323,28 @@
     "isNew": false,
     "isSale": false,
     "Stock": 0
+  },
+  {
+    "id": 1780747035605,
+    "name": "teste",
+    "price": 1.99,
+    "oldPrice": 2.99,
+    "shortDescription": "produto teste",
+    "description": "",
+    "category": "",
+    "isNew": false,
+    "isSale": true,
+    "featured": true,
+    "stock": 1,
+    "image": "http://localhost:3001/uploads/1780747035584-491884200.png",
+    "images": [
+      "http://localhost:3001/uploads/1780747035584-491884200.png",
+      "http://localhost:3001/uploads/1780747035586-652242851.png"
+    ],
+    "imagePublicId": "1780747035584-491884200.png",
+    "imagePublicIds": [
+      "1780747035584-491884200.png",
+      "1780747035586-652242851.png"
+    ]
   }
 ]

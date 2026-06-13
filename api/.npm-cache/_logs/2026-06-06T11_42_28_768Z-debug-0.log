@@ -1,0 +1,244 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.2.4
+2 info using node@v20.11.1
+3 timing npm:load:whichnode Completed in 1ms
+4 timing config:load:defaults Completed in 1ms
+5 timing config:load:file:C:\Program Files\nodejs\node_modules\npm\npmrc Completed in 2ms
+6 timing config:load:builtin Completed in 3ms
+7 timing config:load:cli Completed in 2ms
+8 timing config:load:env Completed in 0ms
+9 timing config:load:file:C:\Users\Kira\Desktop\julia makeup\api\.npmrc Completed in 0ms
+10 timing config:load:project Completed in 2ms
+11 timing config:load:file:C:\Users\Kira\.npmrc Completed in 0ms
+12 timing config:load:user Completed in 1ms
+13 timing config:load:file:C:\Users\Kira\AppData\Roaming\npm\etc\npmrc Completed in 0ms
+14 timing config:load:global Completed in 0ms
+15 timing config:load:setEnvs Completed in 0ms
+16 timing config:load Completed in 9ms
+17 timing npm:load:configload Completed in 9ms
+18 timing config:load:flatten Completed in 2ms
+19 timing npm:load:mkdirpcache Completed in 0ms
+20 timing npm:load:mkdirplogs Completed in 1ms
+21 verbose title npm install
+22 verbose argv "install" "--cache" ".npm-cache"
+23 timing npm:load:setTitle Completed in 1ms
+24 timing npm:load:display Completed in 0ms
+25 verbose logfile logs-max:10 dir:C:\Users\Kira\Desktop\julia makeup\api\.npm-cache\_logs\2026-06-06T11_42_28_768Z-
+26 verbose logfile C:\Users\Kira\Desktop\julia makeup\api\.npm-cache\_logs\2026-06-06T11_42_28_768Z-debug-0.log
+27 timing npm:load:logFile Completed in 6ms
+28 timing npm:load:timers Completed in 0ms
+29 timing npm:load:configScope Completed in 0ms
+30 timing npm:load Completed in 39ms
+31 timing arborist:ctor Completed in 1ms
+32 silly logfile done cleaning log files
+33 timing idealTree:init Completed in 33ms
+34 timing idealTree:userRequests Completed in 0ms
+35 silly idealTree buildDeps
+36 timing idealTree:#root Completed in 0ms
+37 timing idealTree:buildDeps Completed in 1ms
+38 timing idealTree:fixDepFlags Completed in 0ms
+39 timing idealTree Completed in 35ms
+40 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+41 timing reify:loadTrees Completed in 56ms
+42 timing reify:diffTrees Completed in 3ms
+43 silly reify moves {}
+44 timing reify:retireShallow Completed in 1ms
+45 timing reify:createSparse Completed in 10ms
+46 timing reify:loadBundles Completed in 0ms
+47 silly audit bulk request {
+47 silly audit   accepts: [ '2.0.0' ],
+47 silly audit   'append-field': [ '1.0.0' ],
+47 silly audit   bcrypt: [ '6.0.0' ],
+47 silly audit   'body-parser': [ '2.2.2' ],
+47 silly audit   'buffer-equal-constant-time': [ '1.0.1' ],
+47 silly audit   'buffer-from': [ '1.1.2' ],
+47 silly audit   busboy: [ '1.6.0' ],
+47 silly audit   bytes: [ '3.1.2' ],
+47 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+47 silly audit   'call-bound': [ '1.0.4' ],
+47 silly audit   cloudinary: [ '1.41.3' ],
+47 silly audit   'cloudinary-core': [ '2.14.1' ],
+47 silly audit   'concat-stream': [ '2.0.0' ],
+47 silly audit   'content-disposition': [ '1.0.1' ],
+47 silly audit   'content-type': [ '1.0.5' ],
+47 silly audit   cookie: [ '0.7.2' ],
+47 silly audit   'cookie-signature': [ '1.2.2' ],
+47 silly audit   'core-js': [ '3.49.0' ],
+47 silly audit   cors: [ '2.8.5' ],
+47 silly audit   debug: [ '4.4.3' ],
+47 silly audit   depd: [ '2.0.0' ],
+47 silly audit   'dunder-proto': [ '1.0.1' ],
+47 silly audit   'ecdsa-sig-formatter': [ '1.0.11' ],
+47 silly audit   'ee-first': [ '1.1.1' ],
+47 silly audit   encodeurl: [ '2.0.0' ],
+47 silly audit   'es-define-property': [ '1.0.1' ],
+47 silly audit   'es-errors': [ '1.3.0' ],
+47 silly audit   'es-object-atoms': [ '1.1.1' ],
+47 silly audit   'escape-html': [ '1.0.3' ],
+47 silly audit   etag: [ '1.8.1' ],
+47 silly audit   express: [ '5.2.1' ],
+47 silly audit   finalhandler: [ '2.1.1' ],
+47 silly audit   forwarded: [ '0.2.0' ],
+47 silly audit   fresh: [ '2.0.0' ],
+47 silly audit   'function-bind': [ '1.1.2' ],
+47 silly audit   'get-intrinsic': [ '1.3.0' ],
+47 silly audit   'get-proto': [ '1.0.1' ],
+47 silly audit   gopd: [ '1.2.0' ],
+47 silly audit   'has-symbols': [ '1.1.0' ],
+47 silly audit   hasown: [ '2.0.2' ],
+47 silly audit   'http-errors': [ '2.0.1' ],
+47 silly audit   'iconv-lite': [ '0.7.2' ],
+47 silly audit   inherits: [ '2.0.4' ],
+47 silly audit   'ipaddr.js': [ '1.9.1' ],
+47 silly audit   'is-promise': [ '4.0.0' ],
+47 silly audit   jsonwebtoken: [ '9.0.3' ],
+47 silly audit   jwa: [ '2.0.1' ],
+47 silly audit   jws: [ '4.0.1' ],
+47 silly audit   lodash: [ '4.18.1' ],
+47 silly audit   'lodash.includes': [ '4.3.0' ],
+47 silly audit   'lodash.isboolean': [ '3.0.3' ],
+47 silly audit   'lodash.isinteger': [ '4.0.4' ],
+47 silly audit   'lodash.isnumber': [ '3.0.3' ],
+47 silly audit   'lodash.isplainobject': [ '4.0.6' ],
+47 silly audit   'lodash.isstring': [ '4.0.1' ],
+47 silly audit   'lodash.once': [ '4.1.1' ],
+47 silly audit   'math-intrinsics': [ '1.1.0' ],
+47 silly audit   'media-typer': [ '1.1.0', '0.3.0' ],
+47 silly audit   'merge-descriptors': [ '2.0.0' ],
+47 silly audit   'mime-db': [ '1.54.0', '1.52.0' ],
+47 silly audit   'mime-types': [ '3.0.2', '2.1.35' ],
+47 silly audit   ms: [ '2.1.3' ],
+47 silly audit   multer: [ '2.1.1' ],
+47 silly audit   'multer-storage-cloudinary': [ '4.0.0' ],
+47 silly audit   'type-is': [ '1.6.18', '2.0.1' ],
+47 silly audit   negotiator: [ '1.0.0' ],
+47 silly audit   'node-addon-api': [ '8.5.0' ],
+47 silly audit   'node-gyp-build': [ '4.8.4' ],
+47 silly audit   'object-assign': [ '4.1.1' ],
+47 silly audit   'object-inspect': [ '1.13.4' ],
+47 silly audit   'on-finished': [ '2.4.1' ],
+47 silly audit   once: [ '1.4.0' ],
+47 silly audit   parseurl: [ '1.3.3' ],
+47 silly audit   'path-to-regexp': [ '8.3.0' ],
+47 silly audit   'proxy-addr': [ '2.0.7' ],
+47 silly audit   q: [ '1.5.1' ],
+47 silly audit   qs: [ '6.14.1' ],
+47 silly audit   'range-parser': [ '1.2.1' ],
+47 silly audit   'raw-body': [ '3.0.2' ],
+47 silly audit   'readable-stream': [ '3.6.2' ],
+47 silly audit   router: [ '2.2.0' ],
+47 silly audit   'safe-buffer': [ '5.2.1' ],
+47 silly audit   'safer-buffer': [ '2.1.2' ],
+47 silly audit   semver: [ '7.7.3' ],
+47 silly audit   send: [ '1.2.1' ],
+47 silly audit   'serve-static': [ '2.2.1' ],
+47 silly audit   setprototypeof: [ '1.2.0' ],
+47 silly audit   'side-channel': [ '1.1.0' ],
+47 silly audit   'side-channel-list': [ '1.0.0' ],
+47 silly audit   'side-channel-map': [ '1.0.1' ],
+47 silly audit   'side-channel-weakmap': [ '1.0.2' ],
+47 silly audit   statuses: [ '2.0.2' ],
+47 silly audit   streamsearch: [ '1.1.0' ],
+47 silly audit   string_decoder: [ '1.3.0' ],
+47 silly audit   toidentifier: [ '1.0.1' ],
+47 silly audit   typedarray: [ '0.0.6' ],
+47 silly audit   unpipe: [ '1.0.0' ],
+47 silly audit   'util-deprecate': [ '1.0.2' ],
+47 silly audit   vary: [ '1.1.2' ],
+47 silly audit   wrappy: [ '1.0.2' ]
+47 silly audit }
+48 silly tarball no local data for typedarray@https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz. Extracting by manifest.
+49 silly tarball no local data for string_decoder@https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz. Extracting by manifest.
+50 silly tarball no local data for util-deprecate@https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz. Extracting by manifest.
+51 silly tarball no local data for q@https://registry.npmjs.org/q/-/q-1.5.1.tgz. Extracting by manifest.
+52 silly tarball no local data for multer@https://registry.npmjs.org/multer/-/multer-2.1.1.tgz. Extracting by manifest.
+53 silly tarball no local data for readable-stream@https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz. Extracting by manifest.
+54 silly tarball no local data for streamsearch@https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz. Extracting by manifest.
+55 silly tarball no local data for core-js@https://registry.npmjs.org/core-js/-/core-js-3.49.0.tgz. Extracting by manifest.
+56 silly tarball no local data for multer-storage-cloudinary@https://registry.npmjs.org/multer-storage-cloudinary/-/multer-storage-cloudinary-4.0.0.tgz. Extracting by manifest.
+57 silly tarball no local data for cloudinary@https://registry.npmjs.org/cloudinary/-/cloudinary-1.41.3.tgz. Extracting by manifest.
+58 silly tarball no local data for lodash@https://registry.npmjs.org/lodash/-/lodash-4.18.1.tgz. Extracting by manifest.
+59 silly tarball no local data for busboy@https://registry.npmjs.org/busboy/-/busboy-1.6.0.tgz. Extracting by manifest.
+60 silly tarball no local data for concat-stream@https://registry.npmjs.org/concat-stream/-/concat-stream-2.0.0.tgz. Extracting by manifest.
+61 silly tarball no local data for cloudinary-core@https://registry.npmjs.org/cloudinary-core/-/cloudinary-core-2.14.1.tgz. Extracting by manifest.
+62 silly tarball no local data for append-field@https://registry.npmjs.org/append-field/-/append-field-1.0.0.tgz. Extracting by manifest.
+63 silly tarball no local data for buffer-from@https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.2.tgz. Extracting by manifest.
+64 silly tarball no local data for mime-types@https://registry.npmjs.org/mime-types/-/mime-types-2.1.35.tgz. Extracting by manifest.
+65 silly tarball no local data for type-is@https://registry.npmjs.org/type-is/-/type-is-1.6.18.tgz. Extracting by manifest.
+66 silly tarball no local data for mime-db@https://registry.npmjs.org/mime-db/-/mime-db-1.52.0.tgz. Extracting by manifest.
+67 silly tarball no local data for media-typer@https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz. Extracting by manifest.
+68 silly audit bulk request failed undefined
+69 verbose audit error FetchError: request to https://registry.npmjs.org/-/npm/v1/security/audits/quick failed, reason: 
+69 verbose audit error     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+69 verbose audit error     at ClientRequest.emit (node:events:518:28)
+69 verbose audit error     at _destroy (node:_http_client:875:13)
+69 verbose audit error     at onSocketNT (node:_http_client:895:5)
+69 verbose audit error     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+69 verbose audit error   code: 'EACCES',
+69 verbose audit error   errno: 'EACCES',
+69 verbose audit error   type: 'system'
+69 verbose audit error }
+70 silly audit error undefined
+71 timing auditReport:getReport Completed in 126ms
+72 silly audit report null
+73 timing reify:audit Completed in 126ms
+74 timing reify:rollback:createSparse Completed in 4ms
+75 timing reify:rollback:retireShallow Completed in 0ms
+76 timing command:install Completed in 70391ms
+77 verbose type system
+78 verbose stack FetchError: request to https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz failed, reason: 
+78 verbose stack     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+78 verbose stack     at ClientRequest.emit (node:events:518:28)
+78 verbose stack     at _destroy (node:_http_client:875:13)
+78 verbose stack     at onSocketNT (node:_http_client:895:5)
+78 verbose stack     at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+79 verbose cwd C:\Users\Kira\Desktop\julia makeup\api
+80 verbose Windows_NT 10.0.26200
+81 verbose node v20.11.1
+82 verbose npm  v10.2.4
+83 error code EACCES
+84 error errno EACCES
+85 error FetchError: request to https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz failed, reason: 
+85 error     at ClientRequest.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\minipass-fetch\lib\index.js:130:14)
+85 error     at ClientRequest.emit (node:events:518:28)
+85 error     at _destroy (node:_http_client:875:13)
+85 error     at onSocketNT (node:_http_client:895:5)
+85 error     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+85 error   code: 'EACCES',
+85 error   errno: 'EACCES',
+85 error   type: 'system'
+85 error }
+86 error
+86 error The operation was rejected by your operating system.
+86 error It's possible that the file was already in use (by a text editor or antivirus),
+86 error or that you lack permissions to access it.
+86 error
+86 error If you believe this might be a permissions issue, please double-check the
+86 error permissions of the file and its containing directories, or try running
+86 error the command again as root/Administrator.
+87 verbose exit 1
+88 timing npm Completed in 70659ms
+89 verbose unfinished npm timer reify 1780746149037
+90 verbose unfinished npm timer reify:unpack 1780746149150
+91 verbose unfinished npm timer reifyNode:node_modules/util-deprecate 1780746149150
+92 verbose unfinished npm timer reifyNode:node_modules/typedarray 1780746149150
+93 verbose unfinished npm timer reifyNode:node_modules/string_decoder 1780746149150
+94 verbose unfinished npm timer reifyNode:node_modules/streamsearch 1780746149150
+95 verbose unfinished npm timer reifyNode:node_modules/readable-stream 1780746149150
+96 verbose unfinished npm timer reifyNode:node_modules/q 1780746149150
+97 verbose unfinished npm timer reifyNode:node_modules/multer-storage-cloudinary 1780746149150
+98 verbose unfinished npm timer reifyNode:node_modules/multer 1780746149150
+99 verbose unfinished npm timer reifyNode:node_modules/multer/node_modules/type-is 1780746149151
+100 verbose unfinished npm timer reifyNode:node_modules/multer/node_modules/mime-types 1780746149151
+101 verbose unfinished npm timer reifyNode:node_modules/multer/node_modules/mime-db 1780746149151
+102 verbose unfinished npm timer reifyNode:node_modules/multer/node_modules/media-typer 1780746149151
+103 verbose unfinished npm timer reifyNode:node_modules/lodash 1780746149151
+104 verbose unfinished npm timer reifyNode:node_modules/core-js 1780746149151
+105 verbose unfinished npm timer reifyNode:node_modules/concat-stream 1780746149151
+106 verbose unfinished npm timer reifyNode:node_modules/cloudinary-core 1780746149151
+107 verbose unfinished npm timer reifyNode:node_modules/cloudinary 1780746149151
+108 verbose unfinished npm timer reifyNode:node_modules/busboy 1780746149151
+109 verbose unfinished npm timer reifyNode:node_modules/buffer-from 1780746149151
+110 verbose unfinished npm timer reifyNode:node_modules/append-field 1780746149151
+111 verbose code 1
+112 error A complete log of this run can be found in: C:\Users\Kira\Desktop\julia makeup\api\.npm-cache\_logs\2026-06-06T11_42_28_768Z-debug-0.log

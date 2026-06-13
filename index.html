@@ -9,12 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="icon" href="/img/IMG-20250606-WA0060.jpg" type="image/x-icon">
+    <link rel="icon" href="img/IMG-20250606-WA0060.jpg" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/mobile.css">
+    <script>
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
+    </script>
 
-    <script defer src="/main.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile.css">
+
+    <script defer src="main.js"></script>
 </head>
 
 <body>
@@ -23,6 +29,10 @@
             <div class="header-content">
                 <h1 class="logo">Morango Makeup</h1>
                 <div class="header-icons">
+                    <button class="icon-btn theme-toggle" id="theme-toggle" type="button"
+                        aria-label="Alternar modo claro e escuro">
+                        <i class="fas fa-moon"></i>
+                    </button>
                     <button class="icon-btn" id="favorites-btn">
                         <i class="fas fa-heart text-xl"></i>
                         <span class="count-badge" id="favorites-count">0</span>
@@ -51,7 +61,7 @@
                 </a>
             </div>
             <div class="hero-art">
-                <img src="/img/morango-banner.png" alt="Ilustracao da Morango Makeup">
+                <img src="img/morango-banner.png" alt="Ilustracao da Morango Makeup">
             </div>
         </div>
     </section>
@@ -83,9 +93,52 @@
         </div>
 
         <div class="filters-panel">
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="search-input" placeholder="Buscar por nome ou descricao..." />
+            <div class="filters-toolbar">
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-input" placeholder="Buscar por nome ou descricao..." />
+                </div>
+
+                <label class="sort-control" for="sort-select">
+                    <span>Ordenar</span>
+                    <select id="sort-select">
+                        <option value="featured">Destaques primeiro</option>
+                        <option value="price-asc">Menor preço</option>
+                        <option value="price-desc">Maior preço</option>
+                        <option value="newest">Novidades primeiro</option>
+                        <option value="stock">Mais estoque</option>
+                    </select>
+                </label>
+
+                <button type="button" id="toggle-advanced-filters" class="advanced-filters-toggle"
+                    aria-controls="advanced-filters" aria-expanded="false">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Filtros</span>
+                </button>
+
+                <button type="button" id="reset-filters" class="reset-filters-btn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Limpar</span>
+                </button>
+            </div>
+
+            <div class="filters-meta">
+                <p id="results-summary" class="results-summary">0 produtos encontrados</p>
+            </div>
+
+            <div class="advanced-filters" id="advanced-filters">
+                <label class="advanced-filter">
+                    <span>Preço mínimo</span>
+                    <input type="number" id="price-min" min="0" step="0.01" placeholder="0,00">
+                </label>
+                <label class="advanced-filter">
+                    <span>Preço máximo</span>
+                    <input type="number" id="price-max" min="0" step="0.01" placeholder="0,00">
+                </label>
+                <label class="advanced-filter advanced-filter-check">
+                    <input type="checkbox" id="only-stock">
+                    <span>Somente em estoque</span>
+                </label>
             </div>
 
             <div class="filter-groups">
@@ -93,15 +146,15 @@
                     <button class="filter-btn active" data-tab="all">Todos</button>
                     <button class="filter-btn" data-tab="featured">Destaques</button>
                     <button class="filter-btn" data-tab="new">Novidades</button>
-                    <button class="filter-btn" data-tab="promo">Promocoes</button>
+                    <button class="filter-btn" data-tab="promo">Promoções</button>
                 </div>
 
                 <div class="filter-group" aria-label="Categorias">
                     <button class="filter-btn" data-tab="maquiagem">Maquiagem</button>
                     <button class="filter-btn" data-tab="skincare">Skincare</button>
-                    <button class="filter-btn" data-tab="labios">Labios</button>
+                    <button class="filter-btn" data-tab="labios">Lábios</button>
                     <button class="filter-btn" data-tab="cabelo">Cabelo</button>
-                    <button class="filter-btn" data-tab="acessorios">Acessorios</button>
+                    <button class="filter-btn" data-tab="acessorios">Acessórios</button>
                 </div>
             </div>
         </div>
@@ -124,14 +177,22 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <div class="sidebar-content" id="cart-items">
             <!-- Cart items will be loaded here -->
         </div>
+
         <div class="sidebar-footer">
+            <div class="total-row">
+                <span class="text-lg font-semibold">Resumo:</span>
+                <span id="cart-summary" class="cart-summary">0 itens</span>
+            </div>
+
             <div class="total-row">
                 <span class="text-lg font-semibold">Total:</span>
                 <span id="cart-total" class="text-xl font-bold text-purple-600">R$ 0,00</span>
             </div>
+
             <button id="checkout-btn" class="checkout-btn">Finalizar Compra</button>
         </div>
     </div>
@@ -144,21 +205,69 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <div class="sidebar-content" id="favorites-items">
             <!-- Favorites items will be loaded here -->
         </div>
+
     </div>
 
     <div class="modal-overlay" id="modal-overlay" onclick="closeProductModal()"></div>
 
     <div class="modal" id="product-modal">
         <div class="modal-content">
+
             <div class="modal-header">
                 <h3>Detalhes do Produto</h3>
                 <button title="closeModal" class="close-btn" onclick="closeProductModal()"><i
                         class="fas fa-times"></i></button>
             </div>
+
             <div class="modal-body" id="product-modal-content"></div>
+        </div>
+
+    </div>
+
+    <div class="checkout-overlay" id="checkout-overlay" onclick="closeCheckoutConfirmation()"></div>
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-modal-content">
+
+            <div class="checkout-modal-header">
+                <h3>Confirmar pedido</h3>
+                <button class="close-btn" onclick="closeCheckoutConfirmation()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="checkout-modal-body">
+                <div class="checkout-summary-header">
+                    <div>
+                        <strong id="checkout-items">0 itens</strong>
+                        <p class="checkout-summary-note" id="checkout-note">Revise o resumo antes de abrir o WhatsApp.
+                        </p>
+                    </div>
+                    <div class="checkout-totals">
+                        <span>Total do pedido</span>
+                        <strong id="checkout-total" class="checkout-total">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div id="checkout-summary" class="checkout-summary-list"></div>
+                <div class="checkout-footer">
+
+                    <div class="checkout-summary-note">
+                        O estoque será atualizado antes de abrir a conversa.
+                    </div>
+
+                    <div class="checkout-actions">
+                        <button type="button" class="checkout-secondary-btn"
+                            onclick="closeCheckoutConfirmation()">Cancelar</button>
+                        <button type="button" class="checkout-primary-btn" onclick="confirmCheckout()">Abrir
+                            WhatsApp</button>
+                    </div>
+                    
+                </div>
+            </div>
         </div>
     </div>
 

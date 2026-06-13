@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morango Makeup - Produto</title>
+    <meta name="description" id="product-meta-description" content="Confira os detalhes do produto na Morango Makeup.">
+    <link rel="canonical" id="product-canonical" href="product.html">
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Morango Makeup">
+    <meta property="og:title" id="product-og-title" content="Morango Makeup - Produto">
+    <meta property="og:description" id="product-og-description" content="Confira os detalhes do produto na Morango Makeup.">
+    <meta property="og:image" id="product-og-image" content="img/julia_logo.png">
+    <meta property="og:url" id="product-og-url" content="product.html">
+    <meta property="product:price:amount" id="product-og-price" content="0.00">
+    <meta property="product:price:currency" content="BRL">
+    <meta property="product:availability" id="product-og-availability" content="out of stock">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="product-twitter-title" content="Morango Makeup - Produto">
+    <meta name="twitter:description" id="product-twitter-description" content="Confira os detalhes do produto na Morango Makeup.">
+    <meta name="twitter:image" id="product-twitter-image" content="img/julia_logo.png">
+    <link rel="icon" href="img/IMG-20250606-WA0060.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script>
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <script defer src="main.js"></script>
+    <script defer src="product-page.js"></script>
+    <script type="application/ld+json" id="product-structured-data">{}</script>
+</head>
+
+<body class="product-page-body">
+    <header>
+        <div class="header-container">
+            <div class="header-content">
+                <a class="logo" href="index.html">Morango Makeup</a>
+                <div class="header-icons">
+                    <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Alternar modo claro e escuro">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="icon-btn" id="favorites-btn">
+                        <i class="fas fa-heart text-xl"></i>
+                        <span class="count-badge" id="favorites-count">0</span>
+                    </button>
+                    <button class="icon-btn" id="cart-btn">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="count-badge" id="cart-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="product-page-shell">
+        <a class="back-link" href="index.html#products-section">
+            <i class="fa-solid fa-arrow-left"></i>
+            Voltar para a vitrine
+        </a>
+
+        <div id="product-detail" class="detail-loading detail-skeleton" aria-live="polite">
+            <div class="skeleton-block skeleton-media"></div>
+            <div class="skeleton-copy">
+                <div class="skeleton-block skeleton-title"></div>
+                <div class="skeleton-block skeleton-price"></div>
+                <div class="skeleton-block skeleton-line"></div>
+                <div class="skeleton-block skeleton-line short"></div>
+                <div class="skeleton-actions">
+                    <div class="skeleton-block skeleton-button"></div>
+                    <div class="skeleton-block skeleton-button small"></div>
+                    <div class="skeleton-block skeleton-button small"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="related-section" id="related-section" hidden>
+            <span class="section-kicker">Relacionados</span>
+            <h3>Produtos que combinam com este item</h3>
+            <p>Escolhas parecidas por categoria e faixa de preço.</p>
+            <div id="related-products" class="related-grid"></div>
+        </section>
+    </main>
+
+    <div class="sidebar-overlay" id="cart-overlay" onclick="closeCart()"></div>
+    <div class="sidebar" id="cart-sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Carrinho</h3>
+            <button class="close-btn" title="close-btn" onclick="closeCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content" id="cart-items"></div>
+        <div class="sidebar-footer">
+            <div class="total-row">
+                <span class="text-lg font-semibold">Resumo:</span>
+                <span id="cart-summary" class="cart-summary">0 itens</span>
+            </div>
+            <div class="total-row">
+                <span class="text-lg font-semibold">Total:</span>
+                <span id="cart-total" class="text-xl font-bold text-purple-600">R$ 0,00</span>
+            </div>
+            <button id="checkout-btn" class="checkout-btn">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="favorites-overlay" onclick="closeFavorites()"></div>
+    <div class="sidebar" id="favorites-sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">Favoritos</h3>
+            <button class="close-btn" title="close-btn" onclick="closeFavorites()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content" id="favorites-items"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay" onclick="closeProductModal()"></div>
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Produto</h3>
+                <button title="closeModal" class="close-btn" onclick="closeProductModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="product-modal-content"></div>
+        </div>
+    </div>
+
+    <div class="checkout-overlay" id="checkout-overlay" onclick="closeCheckoutConfirmation()"></div>
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-modal-content">
+            <div class="checkout-modal-header">
+                <h3>Confirmar pedido</h3>
+                <button class="close-btn" onclick="closeCheckoutConfirmation()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="checkout-modal-body">
+                <div class="checkout-summary-header">
+                    <div>
+                        <strong id="checkout-items">0 itens</strong>
+                        <p class="checkout-summary-note" id="checkout-note">Revise o resumo antes de abrir o WhatsApp.</p>
+                    </div>
+                    <div class="checkout-totals">
+                        <span>Total do pedido</span>
+                        <strong id="checkout-total" class="checkout-total">R$ 0,00</strong>
+                    </div>
+                </div>
+                <div id="checkout-summary" class="checkout-summary-list"></div>
+                <div class="checkout-footer">
+                    <div class="checkout-summary-note">
+                        O estoque será atualizado antes de abrir a conversa.
+                    </div>
+                    <div class="checkout-actions">
+                        <button type="button" class="checkout-secondary-btn" onclick="closeCheckoutConfirmation()">Cancelar</button>
+                        <button type="button" class="checkout-primary-btn" onclick="confirmCheckout()">Abrir WhatsApp</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <span class="footer-brand">Morango Makeup</span>
+            <span class="footer-trust">
+                Compra segura &nbsp; • &nbsp; Atendimento via WhatsApp &nbsp; • &nbsp; Entrega rápida
+            </span>
+            <a href="https://wa.me/5547988220959" target="_blank" class="footer-whatsapp">
+                <i class="fa-brands fa-whatsapp"></i>
+                Falar no WhatsApp
+            </a>
+        </div>
+        <div class="footer-copy">
+            © <span id="year"></span> Morango Makeup
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+local-dev-secret : O termo 'local-dev-secret' n∆o Ç reconhecido como nome de cmdlet, funá∆o, arquivo de script ou 
+programa oper†vel. Verifique a grafia do nome ou, se um caminho tiver sido inclu°do, veja se o caminho est† correto e 
+tente novamente.
+No linha:1 caractere:17
++ $env:JWT_SECRET=local-dev-secret; $env:PORT=3002; npm start
++                 ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (local-dev-secret:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Error: JWT_SECRET nao configurado
+    at createAdminToken (C:\Users\Kira\Desktop\julia makeup\api\server.js:40:11)
+    at C:\Users\Kira\Desktop\julia makeup\api\server.js:420:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
