@@ -30,6 +30,7 @@
         document.documentElement.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
     </script>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/product.css">
     <link rel="stylesheet" href="css/mobile.css">
     <script defer src="main.js"></script>
     <script defer src="product-page.js"></script>
@@ -95,16 +96,19 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <div class="sidebar-content" id="cart-items"></div>
         <div class="sidebar-footer">
             <div class="total-row">
                 <span class="text-lg font-semibold">Resumo:</span>
                 <span id="cart-summary" class="cart-summary">0 itens</span>
             </div>
+
             <div class="total-row">
                 <span class="text-lg font-semibold">Total:</span>
                 <span id="cart-total" class="text-xl font-bold text-purple-600">R$ 0,00</span>
             </div>
+
             <button id="checkout-btn" class="checkout-btn">Finalizar Compra</button>
         </div>
     </div>
@@ -117,6 +121,7 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <div class="sidebar-content" id="favorites-items"></div>
     </div>
 
@@ -129,6 +134,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            
             <div class="modal-body" id="product-modal-content"></div>
         </div>
     </div>

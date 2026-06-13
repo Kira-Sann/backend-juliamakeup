@@ -6,7 +6,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || "julia3535";
-const JWT_SECRET = process.env.JWT_SECRET;
+const IS_PRODUCTION = process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
+const JWT_SECRET = process.env.JWT_SECRET || (IS_PRODUCTION ? "" : "local-dev-secret");
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const HAS_CLOUDINARY_CONFIG = Boolean(
@@ -20,10 +21,30 @@ const cloudinary = require("./config/cloudinary");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const productUpload = upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "images", maxCount: 8 }
+]);
 
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+function handleProductUpload(req, res, next) {
+  productUpload(req, res, (err) => {
+    if (!err) {
+      next();
+      return;
+    }
+
+    console.error(err);
+    const isMulterError = err.name === "MulterError";
+    res.status(isMulterError ? 400 : 500).json({
+      error: isMulterError ? "Erro no envio da imagem" : "Erro ao processar imagem",
+      details: err.message
+    });
+  });
+}
 
 function getAdminPassword() {
   return ADMIN_PASSWORD;
@@ -505,10 +526,7 @@ app.get("/products/:id", async (req, res) => {
   }
 });
 
-app.post("/products", auth, upload.fields([
-  { name: "image", maxCount: 1 },
-  { name: "images", maxCount: 8 }
-]), async (req, res) => {
+app.post("/products", auth, handleProductUpload, async (req, res) => {
   try {
     const {
       name,
@@ -551,7 +569,7 @@ app.post("/products", auth, upload.fields([
     res.status(201).json(createdProduct);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao criar produto" });
+    res.status(500).json({ error: "Erro ao criar produto", details: err.message });
   }
 });
 
@@ -585,14 +603,11 @@ app.patch("/products/:id/stock", async (req, res) => {
     res.json(updatedProduct);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao atualizar estoque" });
+    res.status(500).json({ error: "Erro ao atualizar estoque", details: err.message });
   }
 });
 
-app.put("/products/:id", auth, upload.fields([
-  { name: "image", maxCount: 1 },
-  { name: "images", maxCount: 8 }
-]), async (req, res) => {
+app.put("/products/:id", auth, handleProductUpload, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const products = await readProductsStore();
@@ -641,7 +656,7 @@ app.put("/products/:id", auth, upload.fields([
     res.json(savedProduct);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao atualizar produto" });
+    res.status(500).json({ error: "Erro ao atualizar produto", details: err.message });
   }
 });
 
@@ -661,12 +676,25 @@ app.delete("/products/:id", auth, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao deletar produto" });
+    res.status(500).json({ error: "Erro ao deletar produto", details: err.message });
   }
 });
 
 app.get("/", (req, res) => {
   res.send("API Julia Makeup rodando!");
+});
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+
+  res.status(500).json({
+    error: "Erro interno no servidor",
+    details: err.message
+  });
 });
 
 app.listen(PORT, () => {

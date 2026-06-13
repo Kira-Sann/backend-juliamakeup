@@ -155,49 +155,6 @@
     text-align: center;
   }
 
-  .detail-card {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .detail-skeleton {
-    grid-template-columns: 1fr;
-  }
-
-  .skeleton-media {
-    min-height: clamp(220px, 62vw, 300px);
-  }
-
-  .detail-gallery-main {
-    height: clamp(220px, 62vw, 300px);
-  }
-
-  .detail-title {
-    max-width: none;
-    font-size: clamp(1.75rem, 8vw, 2.35rem);
-  }
-
-  .detail-current-price {
-    font-size: clamp(2rem, 9vw, 2.45rem);
-  }
-
-  .detail-actions {
-    align-items: stretch;
-  }
-
-  .detail-action-btn,
-  .detail-link-btn {
-    flex: 1 1 100%;
-  }
-
-  .detail-gallery-thumbs {
-    display: flex;
-  }
-
-  .related-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .modal {
     width: min(calc(100% - 16px), 640px);
   }
@@ -230,11 +187,25 @@
   }
 
   .modal-actions {
-    grid-template-columns: minmax(0, 1fr) 52px 52px;
     gap: 0.6rem;
   }
 
-  .modal-actions .detail-link-btn {
+  .modal-primary-actions {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .modal-secondary-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .modal-fav-btn,
+  .modal-share-btn {
+    width: 100%;
+  }
+
+  .modal-product-link {
     grid-column: 1 / -1;
   }
 
@@ -255,27 +226,6 @@
     flex: 1;
   }
 }
-
-@media (min-width: 769px) and (max-width: 980px) {
-  .detail-card,
-  .detail-skeleton {
-    grid-template-columns: 1fr;
-  }
-
-  .detail-gallery-main {
-    height: clamp(320px, 58vw, 460px);
-  }
-
-  .detail-content {
-    max-width: none;
-  }
-
-  .detail-title {
-    max-width: none;
-  }
-}
-
-
 
 @media (max-width: 640px) {
   .banner h2 {
@@ -304,30 +254,13 @@
     gap: .8rem;
   }
 
-  .related-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .detail-gallery-thumbs {
-    display: flex;
-  }
-
-  .detail-thumb {
-    flex-basis: 58px;
-  }
-
-  .detail-gallery-nav {
-    width: 36px;
-    height: 36px;
-  }
-
   .modal-actions {
     grid-template-columns: 1fr 1fr;
   }
 
   .modal-add-btn,
   .modal-stock-btn,
-  .modal-actions .detail-link-btn {
+  .modal-product-link {
     grid-column: 1 / -1;
   }
 

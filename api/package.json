@@ -4,6 +4,7 @@
   "description": "API JuliaMakeup",
   "main": "server.js",
   "scripts": {
+    "dev": "set JWT_SECRET=local-dev-secret&& set PORT=3001&& node server.js",
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

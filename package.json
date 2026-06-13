@@ -4,6 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "api:dev": "npm --prefix api run dev",
+    "api:start": "npm --prefix api start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

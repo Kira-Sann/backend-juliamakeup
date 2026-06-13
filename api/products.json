@@ -23,7 +23,18 @@
     "category": "labios",
     "isNew": false,
     "isSale": true,
-    "stock": 7
+    "stock": 7,
+    "featured": true,
+    "images": [
+      "/img/IMG-20250606-WA0052.jpag",
+      "http://localhost:3001/uploads/1781363097064-906318968.png",
+      "http://localhost:3001/uploads/1781363097065-245363444.png"
+    ],
+    "imagePublicId": "1781363097064-906318968.png",
+    "imagePublicIds": [
+      "1781363097064-906318968.png",
+      "1781363097065-245363444.png"
+    ]
   },
   {
     "id": 3,
@@ -335,16 +346,18 @@
     "isNew": false,
     "isSale": true,
     "featured": true,
-    "stock": 1,
+    "stock": 2,
     "image": "http://localhost:3001/uploads/1780747035584-491884200.png",
     "images": [
       "http://localhost:3001/uploads/1780747035584-491884200.png",
-      "http://localhost:3001/uploads/1780747035586-652242851.png"
+      "http://localhost:3001/uploads/1780747035586-652242851.png",
+      "http://localhost:3001/uploads/1781363047618-410880426.jpg"
     ],
     "imagePublicId": "1780747035584-491884200.png",
     "imagePublicIds": [
       "1780747035584-491884200.png",
-      "1780747035586-652242851.png"
+      "1780747035586-652242851.png",
+      "1781363047618-410880426.jpg"
     ]
   }
 ]

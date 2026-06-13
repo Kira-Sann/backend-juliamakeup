@@ -5,10 +5,13 @@ let products = [];
 let editingId = null;
 let currentImages = [];
 let selectedImageFiles = [];
-const API_URL = ["localhost", "127.0.0.1", ""].includes(window.location.hostname)
-  ? "http://localhost:3001"
-  : "https://backend-juliamakeup.onrender.com";
-const ADMIN_STORAGE_KEY = "adminToken";
+const LOCAL_API_URL = "http://localhost:3001";
+const REMOTE_API_URL = "https://backend-juliamakeup.onrender.com";
+const LOCAL_FRONTEND_HOSTS = ["localhost", "127.0.0.1", ""];
+let API_URL = LOCAL_FRONTEND_HOSTS.includes(window.location.hostname) || window.location.protocol === "file:"
+  ? LOCAL_API_URL
+  : REMOTE_API_URL;
+const ADMIN_STORAGE_PREFIX = "adminToken";
 
 const isNew = document.getElementById("isNew");
 const isSale = document.getElementById("isSale");
@@ -30,6 +33,39 @@ function hasValidOldPrice(product) {
 
 function isFeaturedProduct(product) {
   return Boolean(product.featured || hasValidOldPrice(product));
+}
+
+function getAdminStorageKey(apiUrl = API_URL) {
+  try {
+    return `${ADMIN_STORAGE_PREFIX}:${new URL(apiUrl).host}`;
+  } catch (err) {
+    return ADMIN_STORAGE_PREFIX;
+  }
+}
+
+function refreshAuthHeaderForActiveApi(options = {}) {
+  if (!options.headers) return options;
+
+  const headers = new Headers(options.headers);
+  if (headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${getAdminToken()}`);
+  }
+
+  return {
+    ...options,
+    headers
+  };
+}
+
+async function adminFetch(path, options = {}) {
+  try {
+    return await fetch(`${API_URL}${path}`, options);
+  } catch (error) {
+    if (API_URL !== LOCAL_API_URL) throw error;
+
+    API_URL = REMOTE_API_URL;
+    return fetch(`${API_URL}${path}`, refreshAuthHeaderForActiveApi(options));
+  }
 }
 
 function normalizeImageList(value) {
@@ -182,7 +218,7 @@ function renderHistory() {
  * API
  *************************/
 async function loadProducts() {
-  const res = await fetch(`${API_URL}/products`);
+  const res = await adminFetch("/products");
   const data = await res.json();
 
   products = data.map((product) => ({
@@ -226,6 +262,7 @@ const currentPasswordInput = document.getElementById("current-password");
 const newPasswordInput = document.getElementById("new-password");
 const passwordMessage = document.getElementById("password-message");
 const featuredInput = document.getElementById("featured");
+const productSubmitButton = document.getElementById("product-submit-btn");
 const ADMIN_HISTORY_KEY = "adminHistory";
 
 if (imageInput) {
@@ -269,7 +306,7 @@ if (imagePreview) {
 
 
 function getAdminToken() {
-  return localStorage.getItem(ADMIN_STORAGE_KEY) || "";
+  return localStorage.getItem(getAdminStorageKey()) || "";
 }
 
 function isAdminAuthenticated() {
@@ -283,7 +320,7 @@ async function loginAdmin() {
   error.textContent = "";
 
   try {
-    const res = await fetch(`${API_URL}/admin/login`, {
+    const res = await adminFetch("/admin/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -298,7 +335,7 @@ async function loginAdmin() {
       return;
     }
 
-    localStorage.setItem(ADMIN_STORAGE_KEY, data.token);
+    localStorage.setItem(getAdminStorageKey(), data.token);
     input.value = "";
     showAdmin();
   } catch (err) {
@@ -308,7 +345,7 @@ async function loginAdmin() {
 }
 
 function logoutAdmin() {
-  localStorage.removeItem(ADMIN_STORAGE_KEY);
+  localStorage.removeItem(getAdminStorageKey());
   location.reload();
 }
 
@@ -325,13 +362,51 @@ function getAdminHeaders() {
   };
 }
 
+async function readResponseBody(res) {
+  const text = await res.text().catch(() => "");
+
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    if (/<!doctype|<html|<pre>/i.test(text)) {
+      const cleanText = text
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return {
+        message: cleanText || "Erro interno no servidor"
+      };
+    }
+
+    return { message: text };
+  }
+}
+
+function getApiErrorMessage(data, fallback) {
+  return data?.error || data?.message || data?.details || fallback;
+}
+
+function handleAdminRequestError(res, data, fallback) {
+  if (res.status === 401 || res.status === 403) {
+    alert(getApiErrorMessage(data, "Sessao expirada. Entre novamente no admin."));
+    logoutAdmin();
+    return true;
+  }
+
+  alert(`${getApiErrorMessage(data, fallback)} (status ${res.status})`);
+  return true;
+}
+
 async function checkAdminAuth() {
   const token = getAdminToken();
 
   if (!token) return;
 
   try {
-    const res = await fetch(`${API_URL}/admin/session`, {
+    const res = await adminFetch("/admin/session", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -345,7 +420,7 @@ async function checkAdminAuth() {
     console.error(err);
   }
 
-  localStorage.removeItem(ADMIN_STORAGE_KEY);
+  localStorage.removeItem(getAdminStorageKey());
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -382,7 +457,9 @@ function setPasswordPanelVisibility(visible) {
 
   passwordPanel.hidden = !visible;
   togglePasswordPanelButton.classList.toggle("active", visible);
-  togglePasswordPanelButton.textContent = visible ? "Fechar senha" : "Senha";
+  togglePasswordPanelButton.innerHTML = visible
+    ? '<i class="fa-solid fa-xmark"></i> Fechar senha'
+    : '<i class="fa-solid fa-key"></i> Senha';
 
   if (!visible) {
     passwordForm?.reset();
@@ -395,7 +472,9 @@ function setHistoryPanelVisibility(visible) {
 
   historyPanel.hidden = !visible;
   toggleHistoryPanelButton.classList.toggle("active", visible);
-  toggleHistoryPanelButton.textContent = visible ? "Fechar histórico" : "Histórico";
+  toggleHistoryPanelButton.innerHTML = visible
+    ? '<i class="fa-solid fa-xmark"></i> Fechar hist&oacute;rico'
+    : '<i class="fa-solid fa-clock-rotate-left"></i> Hist&oacute;rico';
 
   if (visible) {
     renderHistory();
@@ -439,9 +518,9 @@ function renderList(listToRender = products) {
       </div>
 
       <div class="actions">
-        <button onclick="editProduct(${p.id})">Editar</button>
-        <button onclick="duplicateProduct(${p.id})">Duplicar</button>
-        <button onclick="removeProduct(${p.id})">Remover</button>
+        <button class="action-btn edit-btn" onclick="editProduct(${p.id})"><i class="fa-solid fa-pen"></i> Editar</button>
+        <button class="action-btn duplicate-btn" onclick="duplicateProduct(${p.id})"><i class="fa-solid fa-copy"></i> Duplicar</button>
+        <button class="action-btn remove-btn" onclick="removeProduct(${p.id})"><i class="fa-solid fa-trash"></i> Remover</button>
       </div>
     `;
 
@@ -454,18 +533,14 @@ function renderList(listToRender = products) {
  *************************/
 async function removeProduct(id) {
   const product = products.find((item) => item.id === id);
-  const res = await fetch(`${API_URL}/products/${id}`, {
+  const res = await adminFetch(`/products/${id}`, {
     method: "DELETE",
     headers: getAdminHeaders()
   });
 
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401 || res.status === 403) {
-      logoutAdmin();
-      return;
-    }
-    alert(data.error || "Nao foi possivel remover o produto.");
+    const data = await readResponseBody(res);
+    handleAdminRequestError(res, data, "Nao foi possivel remover o produto.");
     return;
   }
 
@@ -501,7 +576,7 @@ function editProduct(id) {
   clearSelectedImageFiles();
   renderEditableImagePreview(currentImages);
 
-  form.querySelector("button").textContent = "Atualizar Produto";
+  if (productSubmitButton) productSubmitButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Atualizar Produto';
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -526,7 +601,7 @@ function duplicateProduct(id) {
   clearSelectedImageFiles();
   renderEditableImagePreview(currentImages);
 
-  form.querySelector("button").textContent = "Salvar Produto";
+  if (productSubmitButton) productSubmitButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Produto';
   window.scrollTo({ top: 0, behavior: "smooth" });
   addAdminHistory("Duplicado", p.name, "Aberto no formulário para nova cópia");
 }
@@ -596,19 +671,15 @@ form.addEventListener("submit", async (e) => {
   });
 
   if (editingId) {
-    const res = await fetch(`${API_URL}/products/${editingId}`, {
+    const res = await adminFetch(`/products/${editingId}`, {
       method: "PUT",
       headers: getAdminHeaders(),
       body: formData
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 401 || res.status === 403) {
-        logoutAdmin();
-        return;
-      }
-      alert(data.error || "Nao foi possivel atualizar o produto.");
+      const data = await readResponseBody(res);
+      handleAdminRequestError(res, data, "Nao foi possivel atualizar o produto.");
       return;
     }
 
@@ -625,19 +696,15 @@ form.addEventListener("submit", async (e) => {
     };
     addAdminHistory("Atualizado", updatedSnapshot.name, describeProductDiff(previousProduct, updatedSnapshot));
   } else {
-    const res = await fetch(`${API_URL}/products`, {
+    const res = await adminFetch("/products", {
       method: "POST",
       headers: getAdminHeaders(),
       body: formData
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 401 || res.status === 403) {
-        logoutAdmin();
-        return;
-      }
-      alert(data.error || "Nao foi possivel criar o produto.");
+      const data = await readResponseBody(res);
+      handleAdminRequestError(res, data, "Nao foi possivel criar o produto.");
       return;
     }
 
@@ -651,7 +718,7 @@ form.addEventListener("submit", async (e) => {
   currentImages = [];
   clearSelectedImageFiles();
   renderEditableImagePreview([]);
-  form.querySelector("button").textContent = "Salvar Produto";
+  if (productSubmitButton) productSubmitButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Produto';
 });
 
 if (passwordForm) {
@@ -665,7 +732,7 @@ if (passwordForm) {
 
     setPasswordMessage("");
 
-    const res = await fetch(`${API_URL}/admin/change-password`, {
+    const res = await adminFetch("/admin/change-password", {
       method: "POST",
       headers: {
         ...getAdminHeaders(),
@@ -677,7 +744,7 @@ if (passwordForm) {
       })
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await readResponseBody(res);
 
     if (!res.ok) {
       if (res.status === 401 || res.status === 403) {
@@ -690,7 +757,7 @@ if (passwordForm) {
         return;
       }
 
-      setPasswordMessage(data.error || "Nao foi possivel atualizar a senha", "error");
+      setPasswordMessage(getApiErrorMessage(data, "Nao foi possivel atualizar a senha"), "error");
       return;
     }
 

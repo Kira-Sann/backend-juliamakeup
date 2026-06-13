@@ -95,6 +95,56 @@ function productPageTruncate(value = "", maxLength = 155) {
   return `${text.slice(0, maxLength - 1).trim()}...`;
 }
 
+function productPageEscapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function productPageGetShortDescription(product) {
+  const shortDescription = productPagePlainText(product.shortDescription);
+  if (shortDescription) return shortDescription;
+
+  const fullDescription = productPagePlainText(product.description);
+  if (fullDescription) return productPageTruncate(fullDescription, 150);
+
+  return "Sem descricao curta disponivel.";
+}
+
+function productPageShouldShowFullDescription(product) {
+  const fullDescription = productPagePlainText(product.description);
+  const shortDescription = productPagePlainText(product.shortDescription);
+
+  if (!fullDescription) return false;
+  if (!shortDescription) return fullDescription.length > 150;
+
+  return productPageNormalizeText(fullDescription) !== productPageNormalizeText(shortDescription);
+}
+
+function productPageRenderFullDescription(product) {
+  if (!productPageShouldShowFullDescription(product)) return "";
+
+  const fullDescription = productPagePlainText(product.description);
+
+  return `
+    <details class="product-full-description">
+      <summary>
+        <span>
+          <strong>Descrição completa</strong>
+          <small>Ver detalhes completos do produto</small>
+        </span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </summary>
+      <div class="product-full-description-body">
+        <p>${productPageEscapeHtml(fullDescription)}</p>
+      </div>
+    </details>
+  `;
+}
+
 function productPageAbsoluteUrl(value) {
   try {
     return new URL(value || "img/julia_logo.png", window.location.href).href;
@@ -275,34 +325,46 @@ function productPageRenderDetail(product, products) {
   if (!container) return;
 
   const oldPrice = productPageHasValidOldPrice(product) ? product.oldPrice : null;
+  const shortDescription = productPageGetShortDescription(product);
+  const fullDescription = productPageRenderFullDescription(product);
   container.classList.remove("detail-loading", "detail-skeleton");
 
   container.innerHTML = `
     <div class="detail-card">
       ${productPageRenderGallery(product)}
       <div class="detail-content">
-        <div class="detail-badges">
-          ${productPageRenderBadges(product)}
+        <div class="detail-main-info">
+          <div class="detail-badges">
+            ${productPageRenderBadges(product)}
+          </div>
+          <h1 class="detail-title">${product.name}</h1>
+          <div class="detail-price">
+            ${oldPrice ? `<span class="detail-old-price">${productPageFormatMoney(oldPrice)}</span>` : ""}
+            <span class="detail-current-price">${productPageFormatMoney(product.price)}</span>
+          </div>
+          <p class="detail-description">${productPageEscapeHtml(shortDescription)}</p>
         </div>
-        <h1 class="detail-title">${product.name}</h1>
-        <div class="detail-price">
-          ${oldPrice ? `<span class="detail-old-price">${productPageFormatMoney(oldPrice)}</span>` : ""}
-          <span class="detail-current-price">${productPageFormatMoney(product.price)}</span>
-        </div>
-        <p class="detail-description">${product.description || product.shortDescription || "Sem descrição disponível."}</p>
-        <div class="detail-meta">
-          <span>Categoria: ${product.category || "geral"}</span>
-          <span>Estoque: ${Number(product.stock) || 0}</span>
-          ${product.stock > 0 ? '<span>Pronto para envio</span>' : '<span>Fora de estoque</span>'}
-        </div>
-        <div class="detail-actions">
-          ${product.stock > 0 ? `<button class="detail-action-btn" onclick="addToCart(${product.id})"><i class="fa-solid fa-cart-plus"></i> Adicionar ao carrinho</button>` : ""}
-          <button class="detail-action-btn" onclick="toggleFavorite(${product.id})"><i class="fa-solid fa-heart"></i> Favoritar</button>
-          <button class="detail-action-btn" onclick="shareProduct(${product.id})"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
-          <a class="detail-link-btn" href="index.html#products-section"><i class="fa-solid fa-arrow-left"></i> Voltar para a loja</a>
+        <div class="detail-actions" aria-label="Acoes do produto">
+          <div class="detail-meta">
+            <span>Categoria: ${productPageEscapeHtml(product.category || "geral")}</span>
+            <span>Estoque: ${Number(product.stock) || 0}</span>
+            ${product.stock > 0 ? '<span>Pronto para envio</span>' : '<span>Fora de estoque</span>'}
+          </div>
+          ${product.stock > 0 ? `
+            <div class="detail-primary-actions">
+              <button class="detail-action-btn detail-add-btn" onclick="addToCart(${product.id})"><i class="fa-solid fa-cart-plus"></i> Adicionar ao carrinho</button>
+              <button class="detail-action-btn detail-buy-btn" onclick="buyNow(${product.id})"><i class="fa-brands fa-whatsapp"></i> Comprar agora</button>
+            </div>
+          ` : ""}
+          <div class="detail-secondary-actions">
+            <button class="detail-action-btn detail-quiet-btn" onclick="toggleFavorite(${product.id})"><i class="fa-solid fa-heart"></i> Favoritar</button>
+            <button class="detail-action-btn detail-quiet-btn" onclick="shareProduct(${product.id})"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
+            <a class="detail-link-btn detail-quiet-btn" href="index.html#products-section"><i class="fa-solid fa-arrow-left"></i> Voltar para a loja</a>
+          </div>
         </div>
       </div>
     </div>
+    ${fullDescription}
   `;
 
   productPageRenderRelated(products, product);

@@ -504,7 +504,12 @@ function renderProducts() {
                     <span class="current-price">R$ ${p.price.toFixed(2)}</span>
                 </div>
                 ${p.stock > 0
-            ? `<button class="add-to-cart-btn" onclick="addToCart(${p.id})">Adicionar</button>`
+            ? `<div class="product-actions">
+                    <button class="add-to-cart-btn product-cart-icon-btn" onclick="addToCart(${p.id})" aria-label="Adicionar ao carrinho" title="Adicionar ao carrinho">
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                    <button class="buy-now-card-btn" onclick="buyNow(${p.id})">Comprar agora</button>
+                </div>`
             : `<button class="out-of-stock-btn" disabled>Fora de estoque</button>`
         }
                 <button class="details-btn" onclick="window.location.href='product.html?id=${p.id}'">Ver detalhes</button>
@@ -557,12 +562,12 @@ async function updateProductStock(productId, delta) {
     return data;
 }
 
-async function addToCart(productId) {
+async function addToCart(productId, options = {}) {
     const product = products.find(p => p.id === productId);
 
     if (!product || product.stock <= 0) {
         showToast("Produto fora de estoque");
-        return;
+        return false;
     }
 
     try {
@@ -571,7 +576,7 @@ async function addToCart(productId) {
         if (existing) {
             if (existing.quantity >= product.stock) {
                 showToast("Estoque insuficiente");
-                return;
+                return false;
             }
             existing.quantity += 1;
         } else {
@@ -586,13 +591,47 @@ async function addToCart(productId) {
 
         saveCart();
         updateCartCount();
-        showToast("Produto adicionado ao carrinho");
+        if (!options.silentToast) {
+            showToast("Produto adicionado ao carrinho");
+        }
         updateCartDisplay();
         applyFilterAndRender();
+        return true;
     } catch (err) {
         console.error(err);
         showToast(err.message || "Erro ao adicionar produto");
+        return false;
     }
+}
+
+async function buyNow(productId) {
+    const product = products.find(p => p.id === productId);
+
+    if (!product || product.stock <= 0) {
+        showToast("Produto fora de estoque");
+        return;
+    }
+
+    const existing = cart.find(item => item.id === productId);
+    const shouldAddItem = !existing || existing.quantity < product.stock;
+
+    if (shouldAddItem) {
+        const added = await addToCart(productId, { silentToast: true });
+        if (!added) return;
+    }
+
+    const modal = document.getElementById("product-modal");
+    if (modal?.classList.contains("open")) {
+        closeProductModal();
+    }
+
+    const sidebar = document.getElementById("cart-sidebar");
+    if (sidebar?.classList.contains("open")) {
+        closeCart();
+    }
+
+    showToast("Produto pronto para finalizar");
+    openCheckoutConfirmation();
 }
 
 function updateCartCount() {
@@ -1048,6 +1087,9 @@ function openProductModal(id) {
             <button class="modal-add-btn" onclick="addToCart(${p.id});closeProductModal();">
                 <i class="fas fa-cart-plus"></i>Adicionar ao Carrinho
             </button>
+            <button class="modal-buy-btn" onclick="buyNow(${p.id})">
+                <i class="fa-brands fa-whatsapp"></i>Comprar agora
+            </button>
         `;
     } else {
         modalActionButtonHTML = `
@@ -1077,18 +1119,22 @@ function openProductModal(id) {
                     <h4>Descrição</h4>
                     <p>${p.description}</p>
                 </div>
-                <div class="modal-actions">
-                    ${modalActionButtonHTML}
+                <div class="modal-actions ${p.stock > 0 ? 'modal-actions-ready' : 'modal-actions-disabled'}">
+                    <div class="modal-primary-actions">
+                        ${modalActionButtonHTML}
+                    </div>
+                    <div class="modal-secondary-actions">
                     <button type="button" class="modal-fav-btn ${favorites.includes(p.id) ? 'active' : ''}" id="fav-btn-${p.id}" aria-pressed="${favorites.includes(p.id) ? 'true' : 'false'}" onclick="toggleFavorite(${p.id});updateFavIcon(${p.id});">
                         <i class="fas fa-heart"></i>
                     </button>
                     <button type="button" class="modal-share-btn" onclick="shareProduct(${p.id})">
                         <i class="fas fa-share-nodes"></i>
                     </button>
-                    <a class="detail-link-btn" href="product.html?id=${p.id}">
+                        <a class="modal-product-link" href="product.html?id=${p.id}">
                         <i class="fas fa-up-right-from-square"></i>
                         Página do produto
                     </a>
+                    </div>
                 </div>
             </div>
         </div>
