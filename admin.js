@@ -12,6 +12,7 @@ let API_URL = LOCAL_FRONTEND_HOSTS.includes(window.location.hostname) || window.
   ? LOCAL_API_URL
   : REMOTE_API_URL;
 const ADMIN_STORAGE_PREFIX = "adminToken";
+const THEME_STORAGE_KEY = "theme";
 
 const isNew = document.getElementById("isNew");
 const isSale = document.getElementById("isSale");
@@ -33,6 +34,47 @@ function hasValidOldPrice(product) {
 
 function isFeaturedProduct(product) {
   return Boolean(product.featured || hasValidOldPrice(product));
+}
+
+function getPreferredTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
+
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function applyTheme(theme) {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  const themeToggle = document.getElementById("theme-toggle");
+
+  document.documentElement.dataset.theme = nextTheme;
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+
+  if (themeToggle) {
+    const icon = themeToggle.querySelector("i");
+    const isDark = nextTheme === "dark";
+
+    themeToggle.setAttribute("aria-label", isDark ? "Ativar modo claro" : "Ativar modo escuro");
+    themeToggle.setAttribute("title", isDark ? "Modo claro" : "Modo escuro");
+
+    if (icon) {
+      icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+    }
+  }
+}
+
+function setupThemeToggle() {
+  const themeToggle = document.getElementById("theme-toggle");
+  applyTheme(getPreferredTheme());
+
+  if (!themeToggle) return;
+
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    applyTheme(currentTheme === "dark" ? "light" : "dark");
+  });
 }
 
 function getAdminStorageKey(apiUrl = API_URL) {
@@ -424,6 +466,7 @@ async function checkAdminAuth() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  setupThemeToggle();
   await checkAdminAuth();
   loadProducts();
   renderHistory();

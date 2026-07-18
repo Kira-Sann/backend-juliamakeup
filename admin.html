@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="img/IMG-20250606-WA0060.jpg" type="image/x-icon">
     <title>Admin - Produtos</title>
+    <script>
+        const savedAdminTheme = localStorage.getItem("theme");
+        const prefersAdminDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedAdminTheme || (prefersAdminDark ? "dark" : "light");
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
@@ -34,6 +39,11 @@
                     <p class="admin-subtitle">Atualize vitrine, pre&ccedil;os, estoque e imagens em um s&oacute; lugar.</p>
                 </div>
                 <div class="header-actions">
+                    <button type="button" id="theme-toggle" class="header-btn theme-toggle"
+                        aria-label="Alternar modo claro e escuro">
+                        <i class="fa-solid fa-moon"></i>
+                        Tema
+                    </button>
                     <button type="button" id="toggle-password-panel" class="header-btn">
                         <i class="fa-solid fa-key"></i>
                         Senha

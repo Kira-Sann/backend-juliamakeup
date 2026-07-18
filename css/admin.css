@@ -10,6 +10,17 @@
   --surface: #ffffff;
   --surface-soft: #fff8fa;
   --field-bg: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border: rgba(234, 221, 226, 0.9);
+  --header-btn-bg: rgba(255, 255, 255, 0.76);
+  --danger-soft: #fff1f3;
+  --focus-border: rgba(201, 54, 99, 0.6);
+  --focus-ring: rgba(201, 54, 99, 0.13);
+  --brand-ring: rgba(201, 54, 99, 0.42);
+  --checkbox-dot: #d7cbd1;
+  --checkbox-dot-ring: #ffffff;
+  --success-dot: #65a875;
+  --featured-dot: #f59e0b;
   --danger: #d83d55;
   --success: #15803d;
   --warning-bg: #fff1d6;
@@ -17,6 +28,45 @@
   --shadow-sm: 0 10px 24px rgba(36, 27, 32, 0.08);
   --shadow-md: 0 22px 52px rgba(36, 27, 32, 0.12);
   --radius: 8px;
+  --body-bg:
+    linear-gradient(135deg, rgba(248, 219, 228, 0.72), rgba(255, 250, 247, 0.85) 42%, rgba(255, 244, 248, 0.94)),
+    var(--paper);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --brand: #ff6f9d;
+  --brand-dark: #ff9ab8;
+  --brand-hot: #ff7aa8;
+  --brand-soft: #3b1d2b;
+  --ink: #fff4f7;
+  --muted: #d6bdc8;
+  --line: #46313b;
+  --paper: #130d11;
+  --surface: #1d151a;
+  --surface-soft: #241820;
+  --field-bg: #20161d;
+  --card-bg: rgba(29, 21, 26, 0.9);
+  --card-border: rgba(70, 49, 59, 0.92);
+  --header-btn-bg: rgba(36, 24, 32, 0.82);
+  --danger-soft: #3b1d2b;
+  --focus-border: rgba(255, 111, 157, 0.68);
+  --focus-ring: rgba(255, 111, 157, 0.18);
+  --brand-ring: rgba(255, 111, 157, 0.38);
+  --checkbox-dot: #6e4b5a;
+  --checkbox-dot-ring: #1d151a;
+  --success-dot: #8fbb9a;
+  --featured-dot: #ffb347;
+  --danger: #ff7890;
+  --success: #64d489;
+  --warning-bg: #3b2d19;
+  --warning-text: #ffd180;
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 22px 52px rgba(0, 0, 0, 0.38);
+  --body-bg:
+    linear-gradient(135deg, rgba(59, 29, 43, 0.58), rgba(19, 13, 17, 0.96) 42%, rgba(36, 24, 32, 0.96)),
+    var(--paper);
+  color-scheme: dark;
 }
 
 * {
@@ -31,9 +81,7 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: clamp(1rem, 3vw, 2.25rem);
-  background:
-    linear-gradient(135deg, rgba(248, 219, 228, 0.72), rgba(255, 250, 247, 0.85) 42%, rgba(255, 244, 248, 0.94)),
-    var(--paper);
+  background: var(--body-bg);
   color: var(--ink);
   font-family: "Poppins", Inter, system-ui, sans-serif;
 }
@@ -78,9 +126,9 @@ button {
 .history-panel,
 .admin-product,
 .list-toolbar {
-  border: 1px solid rgba(234, 221, 226, 0.9);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(12px);
 }
@@ -135,8 +183,8 @@ button {
 #product-form textarea:focus,
 .password-form input:focus,
 .search:focus {
-  border-color: rgba(201, 54, 99, 0.6);
-  box-shadow: 0 0 0 3px rgba(201, 54, 99, 0.13);
+  border-color: var(--focus-border);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .login-card button,
@@ -215,7 +263,7 @@ button {
   padding: 0.65rem 0.9rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--header-btn-bg);
   color: var(--ink);
   cursor: pointer;
   font-weight: 800;
@@ -225,17 +273,17 @@ button {
 .header-btn:hover,
 .logout:hover {
   transform: translateY(-1px);
-  border-color: rgba(201, 54, 99, 0.42);
+  border-color: var(--brand-ring);
 }
 
 .header-btn.active {
-  border-color: rgba(201, 54, 99, 0.42);
+  border-color: var(--brand-ring);
   background: var(--brand-soft);
   color: var(--brand-dark);
 }
 
 .logout {
-  background: #fff1f3;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 
@@ -388,7 +436,7 @@ button {
   gap: 0.75rem;
   min-height: 100%;
   padding: 0.62rem 0.75rem;
-  border: 1px dashed rgba(201, 54, 99, 0.35);
+  border: 1px dashed var(--brand-ring);
   border-radius: var(--radius);
   background: var(--surface-soft);
   color: var(--muted);
@@ -398,9 +446,9 @@ button {
 
 .file-input:hover,
 .file-input:focus-within {
-  border-color: rgba(201, 54, 99, 0.58);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(201, 54, 99, 0.1);
+  border-color: var(--focus-border);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .file-input-label {
@@ -458,7 +506,7 @@ button {
   align-items: start;
   min-height: 96px;
   padding: 0.75rem;
-  border: 1px dashed rgba(201, 54, 99, 0.3);
+  border: 1px dashed var(--brand-ring);
   border-radius: var(--radius);
   background: var(--surface-soft);
 }
@@ -485,9 +533,9 @@ button {
   width: 26px;
   height: 26px;
   place-items: center;
-  border: 1px solid rgba(216, 61, 85, 0.28);
+  border: 1px solid var(--danger);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--danger);
   cursor: pointer;
   font-size: 1rem;
@@ -497,7 +545,7 @@ button {
 }
 
 .preview-remove:hover {
-  background: #fff1f3;
+  background: var(--danger-soft);
 }
 
 .preview-empty {
@@ -541,12 +589,12 @@ button {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #d7cbd1;
-  box-shadow: inset 0 0 0 3px #fff;
+  background: var(--checkbox-dot);
+  box-shadow: inset 0 0 0 3px var(--checkbox-dot-ring);
 }
 
 .checkbox-group > div:has(input:checked) {
-  border-color: rgba(201, 54, 99, 0.42);
+  border-color: var(--brand-ring);
   background: var(--brand-soft);
 }
 
@@ -555,7 +603,7 @@ button {
 }
 
 .isnew:has(input:checked)::before {
-  background: #65a875;
+  background: var(--success-dot);
 }
 
 .issale:has(input:checked)::before {
@@ -563,7 +611,7 @@ button {
 }
 
 .isfeatured:has(input:checked)::before {
-  background: #f59e0b;
+  background: var(--featured-dot);
 }
 
 .list-toolbar {
@@ -648,7 +696,7 @@ button {
 }
 
 .product-meta .stock-low {
-  border-color: rgba(154, 91, 0, 0.22);
+  border-color: var(--warning-text);
   background: var(--warning-bg);
   color: var(--warning-text);
 }
@@ -687,12 +735,12 @@ button {
 }
 
 .duplicate-btn {
-  background: #fff1d6;
-  color: #9a5b00;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 
 .remove-btn {
-  background: #fff1f3;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 

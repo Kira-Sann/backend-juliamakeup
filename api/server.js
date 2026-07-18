@@ -8,8 +8,24 @@ const jwt = require("jsonwebtoken");
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_TOKEN || "julia3535";
 const IS_PRODUCTION = process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
 const JWT_SECRET = process.env.JWT_SECRET || (IS_PRODUCTION ? "" : "local-dev-secret");
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+function normalizeSupabaseUrl(value = "") {
+  return value
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/i, "");
+}
+
+const SUPABASE_URL = normalizeSupabaseUrl(
+  process.env.SUPABASE_URL ||
+  process.env.SUPABASE_PROJECT_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  ""
+);
+const SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_KEY ||
+  "";
 const HAS_CLOUDINARY_CONFIG = Boolean(
   process.env.CLOUDINARY_URL ||
   (
@@ -18,7 +34,7 @@ const HAS_CLOUDINARY_CONFIG = Boolean(
     process.env.CLOUDINARY_API_SECRET
   )
 );
-const DEPLOY_VERSION = "morango-admin-2026-06-13-upload-handler";
+const DEPLOY_VERSION = "morango-admin-2026-07-18-supabase-store";
 
 const upload = require("./config/multer");
 const cloudinary = require("./config/cloudinary");
@@ -162,6 +178,18 @@ function saveAdminUser(data) {
 
 function hasSupabase() {
   return Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
+}
+
+function shouldUseFileStore() {
+  if (hasSupabase()) {
+    return false;
+  }
+
+  if (IS_PRODUCTION) {
+    throw new Error("Supabase nao configurado no ambiente de producao. Configure SUPABASE_URL e SUPABASE_SECRET_KEY ou SUPABASE_SERVICE_ROLE_KEY no Render.");
+  }
+
+  return true;
 }
 
 function getSupabaseRestUrl(pathname = "") {
@@ -318,6 +346,10 @@ async function destroyImagePublicIds(publicIds = []) {
 }
 
 async function seedSupabaseProductsIfEmpty() {
+  if (IS_PRODUCTION) {
+    return;
+  }
+
   const existing = await supabaseRequest("products?select=id&limit=1");
 
   if (Array.isArray(existing) && existing.length > 0) {
@@ -340,7 +372,7 @@ async function seedSupabaseProductsIfEmpty() {
 }
 
 async function readProductsStore() {
-  if (!hasSupabase()) {
+  if (shouldUseFileStore()) {
     return readProductsFile();
   }
 
@@ -350,7 +382,7 @@ async function readProductsStore() {
 }
 
 async function readProductStore(id) {
-  if (!hasSupabase()) {
+  if (shouldUseFileStore()) {
     const products = readProductsFile();
     return products.find((product) => Number(product.id) === id) || null;
   }
@@ -361,7 +393,7 @@ async function readProductStore(id) {
 }
 
 async function createProductStore(product) {
-  if (!hasSupabase()) {
+  if (shouldUseFileStore()) {
     const products = readProductsFile();
     products.push(product);
     saveProductsFile(products);
@@ -381,7 +413,7 @@ async function createProductStore(product) {
 }
 
 async function updateProductStore(id, updates) {
-  if (!hasSupabase()) {
+  if (shouldUseFileStore()) {
     const products = readProductsFile();
     const index = products.findIndex((p) => Number(p.id) === id);
     if (index === -1) return null;
@@ -403,7 +435,7 @@ async function updateProductStore(id, updates) {
 }
 
 async function deleteProductStore(id) {
-  if (!hasSupabase()) {
+  if (shouldUseFileStore()) {
     const products = readProductsFile();
     const index = products.findIndex((p) => Number(p.id) === id);
     if (index === -1) return null;
@@ -689,10 +721,13 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
+  const supabaseConfigured = hasSupabase();
+
   res.json({
     ok: true,
     version: DEPLOY_VERSION,
-    storage: hasSupabase() ? "supabase" : "file",
+    storage: supabaseConfigured ? "supabase" : (IS_PRODUCTION ? "missing-supabase" : "file"),
+    supabaseConfigured,
     cloudinaryConfigured: HAS_CLOUDINARY_CONFIG,
     jwtConfigured: Boolean(getJwtSecret()),
     production: IS_PRODUCTION
