@@ -11,10 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET || (IS_PRODUCTION ? "" : "local-dev-se
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const HAS_CLOUDINARY_CONFIG = Boolean(
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_SECRET
+  process.env.CLOUDINARY_URL ||
+  (
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  )
 );
+const DEPLOY_VERSION = "morango-admin-2026-06-13-upload-handler";
 
 const upload = require("./config/multer");
 const cloudinary = require("./config/cloudinary");
@@ -682,6 +686,17 @@ app.delete("/products/:id", auth, async (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("API Julia Makeup rodando!");
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    version: DEPLOY_VERSION,
+    storage: hasSupabase() ? "supabase" : "file",
+    cloudinaryConfigured: HAS_CLOUDINARY_CONFIG,
+    jwtConfigured: Boolean(getJwtSecret()),
+    production: IS_PRODUCTION
+  });
 });
 
 app.use((err, req, res, next) => {
